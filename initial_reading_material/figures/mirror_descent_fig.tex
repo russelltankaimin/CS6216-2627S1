@@ -1,0 +1,54 @@
+\begin{figure}[h!]
+\centering
+\begin{tikzpicture}[>={Stealth[bend]}, line width=0.8pt]
+ 
+% ---------- space boundary curves ----------
+% dual-space boundary (open arc, bulging right)
+\draw[gray!70] (2.4,3.3) .. controls (1.5,1.6) .. (2.4,-0.3);
+% primal-space boundary (open arc, bulging left)
+\draw[gray!70] (7.1,3.5) .. controls (8.0,1.7) .. (7.1,-0.5);
+ 
+% ---------- convex feasible set X (primal) ----------
+\coordinate (xt)   at (9.9,2.7);   % x_t
+\coordinate (xtp)  at (8.55,0.75); % x_{t+1}   (on boundary of X)
+\coordinate (xppt) at (7.75,0.45); % x'_{t+1}  (outside X)
+ 
+\draw[blue,line width=1pt]
+  (9.0,3.05) -- (10.35,2.55) -- (10.55,1.35)
+  .. controls (10.2,0.35) and (9.2,0.15) .. (8.55,0.6)
+  .. controls (8.2,0.85) and (8.25,1.6) .. (8.45,2.15)
+  -- cycle;
+\node[blue] at (10.75,2.0) {$S$};
+ 
+% ---------- dual points ----------
+\coordinate (tt)  at (1.25,2.65);  % theta_t
+\coordinate (ttp) at (0.55,0.10);  % theta_{t+1}
+ 
+% ---------- markers ----------
+\foreach \p in {tt,ttp,xt,xtp,xppt}{\fill (\p) circle (1.7pt);}
+ 
+% ---------- point labels ----------
+\node[above left]  at (tt)   {$\theta_t$};
+\node[left]        at (ttp)  {$\theta_{t+1}$};
+\node[above right] at (xt)   {$x_t$};
+\node[right]       at (xtp)  {$x_{t+1}$};
+\node[below right] at (xppt) {$x'_{t+1}$};
+ 
+% ---------- dual update (gradient step) ----------
+\draw[->] (tt) -- node[left=1pt]{$-\eta\,\nabla f(x_t)$} (ttp);
+ 
+% ---------- mirror maps (red, bowed outward) ----------
+\draw[red,->] (xt)  to[bend right=14] node[above]{$\nabla h(x_t)$} (tt);
+\draw[red,->] (ttp) to[bend right=14] node[below]{$(\nabla h)^{-1}(\theta_{t+1})$} (xppt);
+ 
+% ---------- Bregman projection onto X ----------
+\draw[blue,dashed,->] (xppt) -- (xtp);
+ 
+% ---------- region captions ----------
+\node at (1.3,-1.15) {Dual Space, $\theta$};
+\node at (9.4,-1.15) {Primal Space, $\mathcal X$};
+ 
+\end{tikzpicture}
+\caption{Illustration of Mirror Descent}
+\label{fig:mirror_descent}
+\end{figure}

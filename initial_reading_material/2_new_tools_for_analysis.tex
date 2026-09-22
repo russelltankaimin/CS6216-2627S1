@@ -1,0 +1,88 @@
+\section{Tighter Regret Bounds using Duality and Local Norms}
+We now shift away from using the FoReL framework to study the regret bounds of various OMD algorithms and instead adopt a new lens to perhaps get tighter bounds and in a much simpler way. In this section, we introduce two other ways to analyse regret bounds: Duality and Local Norms.
+
+\subsection{Analysing OMD using Duality}
+
+Before delving into the duality tools we could use, it would be appropriate to have a primer in basic concepts like Fenchel conjugacy, Fenchel-Young inequality, etc.
+
+\subsubsection{A Primer on Fenchel Conjugacy}
+We first give the definition of the Fenchel conjugate of a convex function $f$:
+\begin{define}[Fenchel Conjugate of a Convex Function $f$]
+    The Fenchel conjugate of the convex function $f$, denoted as $f^*$ is defined to be\begin{equation}\label{eqn:frenchel_conjugate}
+        f^*(\theta) = \sup_{x \in \text{dom}(f)} \langle \theta, x \rangle -f(x)
+    \end{equation}
+\end{define}
+Intuitively, we can think of the Fenchel conjugate of $f$ as an alternative representation of a function. Typically we can represent them as a tuple pair $(x, f(x))$. Now instead, we represent them as \textit{a set of tangents} (as opposed to points in space). These sets of tangents can be compactly represented as pairs of (slope, intersection-with-$y$-axis). Let the slope be denoted as $\theta$. The Fenchel conjugate $f^*$ is the function which takes in $\theta$ and outputs the \textbf{negative} $y$-intercept of the tanget line with the slope $\theta$, $f^*(\theta)$. We also note that to use this form of intuition, we assume for our purposes that $f$ is closed and convex. It is also the case that $f$ is closed and convex if and only if $f = (f^*)^*$ (i.e the dual of the dual problem is the primal problem). Furthermore, we have the following inequality that can be derived from the definition of the Fenchel conjugate of $f$:
+\begin{define}[Fenchel-Young Inequality]
+    \begin{equation}\label{eqn:fenchel_young_ineq}
+        \forall x \in \text{dom}(f): \, f^*(\theta) \geq \langle \theta, x\rangle - f(x)
+    \end{equation}
+    Equality holds if $x \in \partial f^*$ at $\theta$. In particular, if $f$ is differentiable, then $x = \nabla f ^*(\theta)$.
+\end{define}
+
+\subsubsection{Strong-smoothness}
+Recall Definition~\ref{defn:sigma_strong_convexity} on $\sigma$-strong convexity. A related property of strong-convexity is what we call \textit{strong-smoothness} and it is related to the Bregman divergence (see Definition~\ref{defn:bregmann_div}).
+\begin{define}[$\sigma$-strong-smoothness]
+    A function $h$ is $\sigma$-strong smooth with respect to a norm $||\cdot||$ if it is differentiable and for all $x, x'$, we have that
+    \begin{equation}
+        D_h(x||x') \leq \frac{\sigma}{2}||x - x'||^2
+    \end{equation}
+\end{define} One can think of strong-smoothness as the \textit{dual property} of strong-convexity. Hence, we also give a lemma which links strong-smoothness and strong-convexity concretely.
+\begin{lemma}[Strong Convexity-Strong Smoothness Duality]\label{lem:strong_convexity_strong_smoothness_duality}
+    Assume that $h$ is a closed and convex function. $h$ is $\sigma$-strongly convex with respect to the norm $||\cdot||$ if and only if the Fenchel conjugate $h^*$ is $\frac{1}{\sigma}$-strongly smooth with respect to the dual norm $||\cdot||_*$.
+\end{lemma}
+We will not prove this lemma here, as we are more interested in using the power of duality to tighten our existing regret bounds, but interested readers might want to refer to \cite{zualinescu2002convex} for the proof. We leave this lemma here as it implies that if $h$ is strongly-convex (which we assume it is), then its Frenchel conjugate $h^*$ is differentiable. 
+
+Also, if we were to look at Equation~\ref{eqn:frenchel_conjugate}, it looks somewhat similar in expression to our definition of $g$. Suppose $x^*$ is the maximiser of $\langle \theta, x\rangle -h(x)$, therefore $g(\theta) = x^*$ by our definition of $g$. Furthermore, by our definition of Fenchel conjugatcy of $h$, we also have that $h^*(\theta) = \langle \theta, x^*\rangle -h(x^*)$. Taking the derivative of $h^*(\theta)$ with respect to $\theta$ yields $x^*$ which is simply $g(\theta)$. Hence, $\nabla h^*(\theta) = g(\theta)$. Hence
+\begin{equation}
+    g(\theta) = \nabla h^*(\theta) = \arg\max_{x \in S} \{\langle \theta, x\rangle - h(x)\}
+\end{equation}
+
+\subsubsection{Regret Analysis using Duality}
+We first give the following lemma relating the regret bounds when OMD is run on a sequence of linear functions. The idea is the same as in the earlier sections that the regret bound for any sequence of convex functions can be upper bounded by that of suitable linear functions (we called it the linearisation trick, see \Cref{sss:forel_OMD_relation}).
+\begin{lemma}\label{lemma:duality_preliminary}
+    Suppose that OMD is run with $g = \nabla f^*$, then its regret is upper bounded by \begin{equation}
+        \sum_{t=1}^T\langle x_t - x, z_t \rangle \leq h(x) - h(x_1) + \sum_{t=1}^T D_{h^*}\left(-\sum_{i=1}^t z_i \left\vert \vphantom{\frac{a}{b}} \right\vert  -\sum_{i=1}^{t-1}z_i\right)   \end{equation}
+        where $z_t \in \partial f_t(x_t)$. Furthermore, equality holds if $x$ minimises $h(x) + \sum_{t} \langle u, z_t \rangle$
+\end{lemma}
+\begin{proof}
+    We start off by having using the Frenchel-Young inequality. For a clearer notation, denote $z_{1:t} = \sum_{i=1}^t z_t$.
+    \begin{equation}\label{eqn:apply_frenchel_young}
+        h^*\left(-z_{1:T}\right) \geq \left\langle x, -z_{1:T}\right\rangle - h(x)
+    \end{equation}
+    We shift our focus on $h^*\left(-z_{1:T}\right)$. We first expand it using the telescoping series and apply the definition of the Bregman divergence as follows. 
+    \begin{align*}
+        h^*(-z_{1:T})&= h^*(0) + \sum_{t=1}^T\left(h^*\left(-z_{1:t}\right)-h^*\left(-z_{1:t-1}\right)\right)\\
+        &=h^*(0) + \sum_{t=1}^T \Big (\underbrace{h^*\left(-z_{1:t}\right)-h^*\left(-z_{1:t-1}\right)- \langle \nabla h^*(-z_{1:t-1}), -z_{1:t}-(-z_{1:t-1}) \rangle}_{D_{h^*}(-z_{1:t}|| -z_{1:t-1})} \\
+        &\hspace{4cm}+ \langle \nabla h^*(-z_{1:t-1}), -z_{1:t}-(-z_{1:t-1}) \rangle\Big)\\
+        &= h^*(0) + \sum_{t=1}^T (D_{h^*}(-z_{1:t} || -z_{1:t-1}) + \langle \nabla h^*(-z_{1:t-1}), -z_t) \rangle)\\
+        &= h^*(0) + \sum_{t=1}^T (D_{h^*}(-z_{1:t} || -z_{1:t-1}) + \langle x_t, -z_t) \rangle) &\because x_t = \nabla h^*(-z_{1:t-1})
+    \end{align*}
+    A gentle recap is that in OMD, we have that the next iterate is governed by $$x_t=g(\theta_t) = g(-z_{1:t-1})=\nabla h^*(-z_{1:t-1})$$
+    Now we combine the above with Equation~\ref{eqn:apply_frenchel_young} to get via the bridging expression $h^*(-z_{1:T})$ to get
+    \begin{align*}
+        &h^*(0) + \sum_{t=1}^T (D_{h^*}(-z_{1:t} || -z_{1:t-1}) + \langle x_t, -z_t) \rangle) \geq \left\langle x, -z_{1:T}\right\rangle - h(x)\\
+        \implies&h^*(0) + \sum_{t=1}^T (D_{h^*}(-z_{1:t} || -z_{1:t-1}) + \langle x_t, -z_t) \rangle) \geq \sum_{t=1}^T\left\langle x, -z_t\right\rangle - h(x)\\
+        \implies&\sum_{t=1}^T \langle x_t, z_t \rangle + \sum_{t=1}^T\langle x, -z_t\rangle \leq h(x)  + h^*(0) + \sum_{t=1}^T D_{h^*}(-z_{1:t}|| -z_{1:t-1}) &\text{By rearrangement}\\
+        \implies&\sum_{t=1}^T \langle x_t- x, z_t\rangle \leq h(x)  + h^*(0) + \sum_{t=1}^T D_{h^*}(-z_{1:t}|| -z_{1:t-1})
+    \end{align*}
+    To evaluate $h^*(0)$, we simply use the definition of Fenchel conjugate again and obtain $$h^*(0) = \sup_{x \in S} \langle 0, x \rangle - h(x) = \sup_{x \in S} -h(x) = -\inf_{x \in S} h(x) = h(x_1)$$ Note that $x_1$ is chosen because it is the first iteration and so there are no past gradients yet to sum. Hence $x_1 = \arg\max_{x \in S} -h(x)$. Substituting $h^*(0) = h(x_1)$ to our final arranged inequality yields the result of the lemma.
+\end{proof}
+Lemma~\ref{lemma:duality_preliminary} is interesting because if you compare the bound to that of the FoReL framework on linear functions, it looks similar except the rear stability term.
+\begin{align*}
+    \sum_{t=1}^T &\langle x_t- x, z_t\rangle \leq h(x)  -h(x_1) + \sum_{t=1}^T D_{h^*}(-z_{1:t}|| -z_{1:t-1}) &\text{(Duality)}\\
+    \sum_{t=1}^T &\langle x_t- x, z_t\rangle \leq h(x)  -h(x_1) + \sum_{t=1}^T \langle x_{t} - x_{t+1}, z_t\rangle &\text{(Linear Functions using FoReL)}
+\end{align*}
+Now suppose we add the assumption that $h$ is $\frac{1}{\eta}$-strongly convex with respect to the norm $||\cdot||$ and suppose we run the OMD algorithm. Since $h$ is $\frac{1}{\eta}$-strongly convex with respect to the norm $||\cdot||$, then it follows by Lemma~\ref{lem:strong_convexity_strong_smoothness_duality} that $h^*$ is $\eta$-strongly smooth with respect to norm $||\cdot||_*$, and by definition, we have that $D(-z_{1:t}||-z_{1:t-1}) \leq \frac{\eta}{2}||-z_{1:t}-(-z_{1:t-1})||^2_* = \frac{\eta}{2}||z_t||_*^2$. It now follows that the more concrete bound with this newly added assumption is:
+\begin{equation}
+    \boxed{\text{Regret}_T(x) \leq h(x) - h(x_1) + \frac{\eta}{2}\sum_{t=1}^T ||z_t||_*^2}
+\end{equation} 
+Let us examine some examples. Suppose $h(x) = \frac{1}{2\eta}||x||_2^2$ which is $\frac{1}{\eta}$-strongly convex with respect to the Euclidean norm. The Euclidean norm being self-dual yields the following regret bound.
+\begin{align}
+    \text{Regret}_T(x) &\leq \frac{1}{2\eta}||x||_2^2 - \frac{1}{2\eta}||x_1||_2^2 + \frac{\eta}{2}\sum_{t=1}^T ||z_t||_2^2\\
+    &\leq \frac{1}{2\eta}||x||_2^2  + \frac{\eta}{2}\sum_{t=1}^T ||z_t||_2^2 &\because \frac{1}{2\eta}||x||_2^2 \geq 0
+\end{align}
+Suppose we let $L^2 = \frac{1}{T}\sum_{t=1}^T||z_t||_2^2$ and set $\eta = \frac{B}{L\sqrt{T}}$ (compare this with $\eta = \frac{B}{L\sqrt{2T}}$ from OMD with Lazy projections), then for all $||x||_2 \leq B$, we arrive at the bound of $\text{Regret}_T(x) \leq BL\sqrt{T}$, which itself is a factor of $\sqrt{2}$ improvement for the same algorithm but a different lens of analysis.
+
+\subsection{Regret Bounds with Local Norms}
+\russ{for Joseph: feel free to change the format or style}

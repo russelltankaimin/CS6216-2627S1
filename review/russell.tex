@@ -1,0 +1,72 @@
+\documentclass{article}
+\usepackage{geometry}
+ \geometry{
+ a4paper,
+ total={170mm,257mm},
+ left=20mm,
+ top=20mm,
+ }
+\usepackage{graphicx}
+\usepackage{titling} % Required for the custom subtitle hook
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{positioning}
+
+\newcommand{\russ}[1]{{\color{purple} (Russ: {#1})}}
+
+% Define the \subtitle command using titling hooks
+\newcommand{\subtitle}[1]{%
+  \posttitle{%
+    \par\end{center}
+    \begin{center}\large#1\end{center}
+    \vskip0.5em}%
+}
+
+\title{Review of Group 6a: Active Learning}
+% \date{\today}
+% \author{
+%   Teoh Tze Tzun (\texttt{A-number})\qquad Tan Kai Min, Russell (\texttt{A0233120A})
+% }
+
+\begin{document}
+\maketitle
+\section{Brief Summary of Work}
+\section{Report}
+\subsection{Strengths}
+\begin{itemize}
+    \item The motivation is really clear in the report. It states clearly the central question, the main problem and why it is worth tackling this problem.
+    \item I think this group has spent a commendable amount of effort to try to ease readers into the challenging, and possibly new, areas of the work to the readers. There are many sections which are new to me (strong adaptive monotonicity, e.g.) which have piqued my interest to learn more.
+\end{itemize}
+\subsection{Weaknesses}
+\begin{itemize}
+    \item A small change I recommend in Page 3 of the report: Line 98, "AL", was used before defined. I presume it just means ` "active learning".
+    \item I had difficulty following the part on coreset selection, as I was unsure of its inner workings and application. I believe more care can be done to explain Equation 8. Incidentally, there is a notation error, as it should be $u(\mathcal{D}) = - \max_{x_i \in\mathcal{X}} \min_{x_j \in \mathcal{D}} d(x_i, x_j)$. Also, perhaps it might be good to specify what the distance metric it could be, as your data might be high-dimensional vectors, or natural language for example.
+    \item It would be good for the proof of Theorem 3.3 to have some explanation on why each step is as such (for e.g 2nd inequality is due to submodularity, 3rd inequality is due to the learner picking greedily). Lastly, the presentation of the last equality was quite confusing for me as I suspect it should have been a ``$\leq$" instead of equality. I suggest that small little notes can make equations easy to follow as well (for e.g $1 + x \leq e^x$ for the final inequality in Line 163).
+    \item For the section on generalised binary search, I believe a small remark to explain why this binary search is generalised or how it relates to the binary search the typical student would know can be helpful, as I had significant difficulty in trying to relate it to the classical binary search that I know.
+\end{itemize}
+\section{Video Presentation}
+\subsection{Strengths}
+\begin{itemize}
+    \item Overall the speakers are clear in their presentation. I think the second speaker did a very nice job in introducing the intuition of submodularity, referencing it to the diminishing returns effect and how each data point's utility (or, in the intuition sense, influence) is determined based on how large the existing labelled data set it is going to be added to is.
+    \item The presentation is a good balance between the theoretical and practical aspects of active learning. I appreciate the part where the third speaker tries to relate some relevant applications of active learning.
+\end{itemize}
+\subsection{Weaknesses}
+\begin{itemize}
+    \item It would be very helpful if there are slide numbers so individual slides can be easily referenced by the reviewers.
+    \item When explaining ``Query-by-Committee", I realised that the speaker gave an example for $K = 12$ classifiers and how the group of classifiers' vote can yield the same variance ratio despite a difference in the level of disagreement. I think it will help the viewers if there is another simple slide which visually aids the explanation of the example. I understand that it is a video presentation, and one can rewind the video but it would help a lot in understanding the point of the example.
+    \item The second speaker's part on active learning has no volume. The third speaker's part on reinforcement learning also has no volume.
+    \item I personally think the third speaker spends too much time reviewing Markov Decision Processes (MDPs) for a video presentation, as, given the topic of the talk, high-level ideas are sufficient. The (numerical computation) example he gave was not really relevant to active learning as well. I think PAL onwards is relevant, as it shows how MDPs are used in active learning. I also had hoped for the PAL section to have some tie-backs to the previous speaker's content, as the final 2 speakers' content seems very disjoint even though its about active learning.
+\end{itemize}
+\section{Further Questions}
+\begin{itemize}
+    \item I wonder, for Query-by-Committee, how do these ``plausible" classifiers come about? How do you know a certain classifier is ``good enough" to be part of the committee? Or perhaps it does not matter? I will appreciate the clarification.
+    \item The authors mentioned that in coreset selection, it opens up clustering and facility location methods to be applicable to active learning. I am just concerned if it can be computationally intractable, as problems like the $k$-center problem is NP-Hard? Are there perhaps approximation algorithms/heuristics which can come up with a good enough coreset (with some theoretical guarantees) so that sampling can be representative?
+\end{itemize}
+\end{document}

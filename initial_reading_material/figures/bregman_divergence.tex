@@ -1,0 +1,55 @@
+% fig-bregman-divergence.tex
+% Requires in the main preamble:
+%   \usepackage{amsmath,amssymb}
+%   \usepackage{tikz}
+%   \usetikzlibrary{arrows.meta,bending,calc}
+\begin{figure}[h!]
+  \centering
+  \begin{tikzpicture}[>=Stealth, line width=0.8pt,
+                      declare function={h(\t)=0.15*\t*\t+0.3*\t+0.6;}]
+
+    % ---------- axis ----------
+    \draw[-] (-0.2,0) -- (5.7,0);
+
+    % ---------- key abscissae ----------
+    \def\xx{1.5}   % x
+    \def\yy{4.0}   % y
+    % h(x)=1.3875, h'(x)=0.75  ->  tangent L(t)=h(x)+h'(x)(t-x)
+    \def\hx{1.3875}
+    \def\slope{0.75}
+
+    % ---------- tangent / linear approximation (blue) ----------
+    \draw[blue,line width=1pt]
+      (0.2,{\hx+\slope*(0.2-\xx)}) -- (5.4,{\hx+\slope*(5.4-\xx)});
+
+    % ---------- convex function h (red) ----------
+    \draw[red,line width=1pt,smooth,samples=100,domain=0.15:4.55]
+      plot (\x,{h(\x)});
+
+    % ---------- dashed drop lines ----------
+    \draw[dashed,gray] (\xx,0) -- (\xx,{h(\xx)});
+    \draw[dashed,gray] (\yy,0) -- (\yy,{h(\yy)});
+
+    % ---------- Bregman gap at y ----------
+    \draw[<->] (\yy,{\hx+\slope*(\yy-\xx)}) -- (\yy,{h(\yy)});
+    \node[anchor=west] at (\yy+0.38,4.52) {$D_h(y\,\|\,x)$};
+
+    % ---------- point at (x,h(x)) ----------
+    \fill (\xx,{h(\xx)}) circle (1.6pt);
+
+    % ---------- curve / line labels ----------
+    \node[red]  at (2.85,3.7) {$h(y)$};
+    \node[red]  at (0.55,1.75) {$h(x)$};
+    \node[blue,anchor=west] at (4.15,2.95)
+      {$h(x)+\langle \nabla h(x),\, y-x\rangle$};
+
+    % ---------- axis ticks ----------
+    \node[below] at (\xx,-0.05) {$x$};
+    \node[below] at (\yy,-0.05) {$y$};
+
+  \end{tikzpicture}
+  \caption{The Bregman divergence $D_h(y\,\|\,x)$ is the gap at $y$ between the
+    convex function $h$ and its linear (first-order) approximation
+    $h(x)+\langle \nabla h(x),\, y-x\rangle$ taken at $x$.}
+  \label{fig:bregman-divergence}
+\end{figure}

@@ -1,0 +1,95 @@
+\documentclass{article}
+\usepackage{geometry}
+ \geometry{
+ a4paper,
+ total={170mm,257mm},
+ left=20mm,
+ top=20mm,
+ }
+\usepackage{graphicx}
+\usepackage{titling} % Required for the custom subtitle hook
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage[round]{natbib}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{positioning, arrows.meta, bending, calc}
+
+\usepackage[capitalize,noabbrev]{cleveref}
+\crefname{assumption}{Assumption}{Assumptions}
+\usepackage{amsthm}
+\usepackage{thmtools}
+\usepackage{thm-restate}
+\usepackage{tabularx}
+
+% some definitions duplicated 
+\declaretheorem[name=Theorem, numberwithin=section]{theorem}
+\declaretheorem[name=Proposition, numberlike=theorem]{proposition}
+\declaretheorem[name=Proposition, numberlike=theorem]{prop}
+\declaretheorem[name=Lemma, numberlike=theorem]{lemma}
+\declaretheorem[name=Lemma, numberlike=theorem]{lem}
+\declaretheorem[name=Definition, numberlike=theorem]{definition}
+\declaretheorem[name=Definition, numberlike=theorem]{define}
+\declaretheorem[name=Corollary, numberlike=theorem]{cor}
+\declaretheorem[name=Remark, numberlike=theorem]{remark}
+\declaretheorem[name=Fact, numberlike=theorem]{fact}
+\declaretheorem[name=Example, numberlike=theorem]{example}
+\declaretheorem[name=Assumption, numberlike=theorem]{assumption}
+\declaretheorem[name=Informal Theorem]{informalthm}
+
+\usepackage{xcolor} % Required for text color
+\newcommand{\todo}[1]{{\color{red}\bfseries [TODO: #1]}}
+\newcommand{\russ}[1]{{\color{purple} (Russ: {#1})}}
+
+
+% Define the \subtitle command using titling hooks
+\newcommand{\subtitle}[1]{%
+  \posttitle{%
+    \par\end{center}
+    \begin{center}\large#1\end{center}
+    \vskip0.5em}%
+}
+
+\title{Online Convex Optimisation Part II - Online Mirror Descent, Regret Bounds and Applications}
+\subtitle{CS6216 Group 8a Reading Material}
+\date{\today}
+\author{
+  Teoh Tze Tzun (\texttt{A0257871R})\thanks{These authors contributed equally to this work.} \qquad Tan Kai Min, Russell (\texttt{A0233120A})\footnotemark[1] 
+}
+
+\begin{document}
+\maketitle
+% \section{Introduction}
+% \textit{Online learning} refers to a technique in machine learning and data science where a learner sequentially takes in data points and uses them to update itself gradually to improve its performance. This is opposed to offline learning, where there is already a set of data points which is readily available for the learner or the model to learn all at once. There have been many general online learning algorithms, such as \textit{mini-batch stochastic gradients descent}, \textit{passive-aggressive algorithms} and \textit{follow-the-leader}. We won't be covering these in this note. 
+
+% \todo{\begin{enumerate}
+%     \item What is Convex optimisation
+%     \item How CO and OL marry into each other
+%     \item General OCO framework
+%     \item why CO
+%     \item what this note will contain
+% \end{enumerate}}
+
+\begin{abstract}
+    In online convex optimisation, a decision maker must iterative minimise cumulative loss in a dynamic environment. At each time step $t=1\ldots T$, the learner selects a decision vector $x_t$ from a convex feasible set. Only after committing to this choice does the environment reveal a convex loss function $f_t$, causing the learner to incur a loss of $f_t(x_t)$. The core objective of the learner is to minimise the regret, defined as the the difference between the learner's accumulated loss over time and the total loss of the best possible fixed decision chosen in hindsight. Standard online gradient descent relies on Euclidean projections, which can be highly suboptimal for decision sets with distinct geometric structures, such as the probability simplex. Online Mirror Descent (OMD) is a fundamental algorithm that generalises classical gradient descent to non-Euclidean spaces. We provide an overview of online mirror descent, exploring its variants, regret bounds, and applications. We begin by reviewing foundational concepts from Week 7 that establish the basis for our analysis. Next, we introduce essential analytical tools before concluding with practical use cases.
+\end{abstract}
+
+% \section{Brief Recap of Part I}
+% \russ{contemplating if we should do this or just ask people to read Part I from Week 7 people}
+\input{initial_reading_material/0_recap_FoREL}
+\input{initial_reading_material/1_online_mirror_descent}
+\input{initial_reading_material/2_new_tools_for_analysis}
+
+\newpage
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+
+\section*{AI Declaration}
+\russ{TODO: i havent used AI in my writing YET. All writing are still done by me. Pictures were generated with the help of claude cuz of my skill issue in drawing.}
+
+\end{document}
