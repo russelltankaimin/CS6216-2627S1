@@ -1,0 +1,221 @@
+\section{Applications to Problems with Limited Feedback (Bandits)}
+We now shift our attention from developing convex analysis tools to applying these tools developed in the previous section to the Multi-Armed Bandit problem. We will consider two cases, namely a simpler case where we assume the loss function is linear, and a more general case where we know little about the loss function. 
+
+To facilitate the analysis of algorithms used to solve these problems, we require one more result that bridges the deterministic setting of the results shown in the previous section to a stochastic setting. We first consider the following modify OMD algorithm.
+
+\begin{center}
+\fbox{%
+\begin{minipage}{0.75\textwidth}
+\centering
+\texttt{Online Mirror Descent with Estimated Gradients}
+\vspace{1em}
+
+\raggedright
+\textbf{parameter:} a link function $g : \mathbb{R}^d \to S$ \\
+\textbf{initialize:} $\theta^{(1)} = \mathbf{0}$ \\
+\textbf{for} $t = 1, 2, \ldots$ \\
+\quad predict $x^{(t)} = g(\theta^{(t)})$ \\
+\quad pick $z^{(t)}$ at random such that
+  $\mathbb{E}[z^{(t)} \mid z^{(t-1)}, \ldots, z^{(1)}] \in \partial f^{(t)}(x^{(t)})$ \\
+\quad update $\theta^{(t+1)} = \theta^{(t)} - z^{(t)}$
+\end{minipage}%
+}
+\end{center}
+
+
+
+\begin{theorem}\label{thm:est_grad_bound}
+Suppose that the $\texttt{Online Mirror Descent with Estimated Gradients}$ algorithm is run on a sequence of loss functions $f^{(1)}, f^{(2)}, \dots, f^{(T)}$. Suppose that the estimated sub-gradients are chosen such that with probability 1 we have
+$$ \sum_{t=1}^T \langle x^{(t)} - x, z^{(t)} \rangle \leq B(x) + \sum_{t=1}^{T} ||z_t||^2_t,$$
+where $B$ is some function and for all round $t$ the norm $||\cdot||_t$ may depend on $x^{(t)}$. Then,
+$$ \mathbb{E}\left[ \sum_{t=1}^{T} \left( f^{(t)}(x^{(t)}) - f^{(t)}(x) \right) \right] \leq B(x) + \sum_{t=1}^{T} ||z_t||^2_t, $$
+where the expectation is taken with respect to the randomness in choosing $z^{(1)}, \dots, z^{(T)}$.
+\end{theorem}
+\begin{proof}
+    We prove this by taking expectations (w.r.t $z^{(t)}$) on both sides of the first inequality, hence obtaining
+    $$ \mathbb{E}\left[\sum_{t=1}^T \langle x^{(t)} - x, z^{(t)} \rangle\right] \leq B(x) + \sum_{t=1}^{T} \mathbb{E}\left[||z_t||^2_t\right].$$
+    At each round $t$, define $v^{(t)} = \mathbb{E}\left[z^{(t)}|z^{(t-1)}, \dots, z^{(1)}\right]$. By the law of total probability (decomposing the joint distribution via chain rule), we have
+    $$ \mathbb{E}\left[\sum_{t=1}^T \langle x^{(t)} - x, z^{(t)} \rangle\right] = \mathbb{E}\left[\sum_{t=1}^T \langle x^{(t)} - x, v^{(t)} \rangle\right]. $$
+    As we assume that $v^{(t)} \in \partial f^{(t)}(x^{(t)})$, by the definition of sub-gradients, we have 
+    $$ \langle x^{(t)} - x, v^{(t)} \rangle \geq f^{(t)}(x^{(t)}) - f^{(t)}(x). $$
+    Combining these results thus completes the proof.
+\end{proof}
+
+\subsection{Multi-armed Bandit with Linear Loss}
+We consider the following formulation of the multi-armed bandit problem. Suppose there are $d$ arms, and on each online round the learner should choose one of the arms, denoted $p^{(t)}$, where the chosen arm $p^{(t)}$ is a random variable. Then, it receives a cost of choosing arm $p^{(t)}$, which is given by $y^{(t)}_{p^{(t)}} \in [0, 1]$. The vector $y^{(t)} \in [0, 1]^d$ associates a cost for each of the arms, but the learner only gets to see the cost of the arm it pulls. Nothing is assumed about the sequence of vectors $y^{(1)}, y^{(2)}, \dots, y^{(T)}$. The goal of the learner is to minimise regret for not always pulling the best arm, which is to minimise
+$$ \mathbb{E}\left[ \sum_{t=1}^T y^{(t)}_{p^{(t)}}\right] - \min_{i} \sum_{t=1}^T y^{(t)}_i, $$
+where the expectation is taken over the learner's own randomness (as the learner likely uses a stochastic strategy).
+
+To approach this problem with the tools that we've previously developed, we will utilise OMD with estimated gradients algorithm as defined at the start of this section. In this situation, we assume that the loss function is linear. We thus consider the loss function $f^{(t)}(x) = \langle x, y^{(t)} \rangle$, where $x \in \Delta_d$ and the probability of the learner choosing arm $i$ at round $t$ is given by $P(p^{(t)} = i) = x^{(t)}_i$. This formulation allows us to interpret $f^{(t)}(x^{(t)})$ as the expected cost of the learner's choice at round $t$.
+
+The challenging part of this problems lies in the fact that at each round, we only receive feedback on the arm we chose, arm $p^{(t)}$. We thus need a means to estimate the gradient simply from this limited information. It turns out to be possible to construct an unbiased estimate of the gradient by defining the random variable $z^{(t)}$ such that
+$$
+z^{(t)}_j =
+\begin{cases}
+y^{(t)}_j / x^{(t)}_j & \text{if } j = p^{(t)} \\
+0 & \text{otherwise}
+\end{cases}
+.
+$$
+We can show that $z^{(t)}$ is an unbiased estimate of the gradient of $\nabla f^{(t)} = y^{(t)}$ by a direction computation:
+\begin{align*}
+    \mathbb{E}\left[ z^{(t)}_j | z^{(t-1)}, \dots, z^{(1)} \right] = \sum_{i=1}^d z^{(t)}_j P(p^{(t)} = i) = y^{(t)}_j / x^{(t)}_j \times x^{(t)}_j = y^{(t)}_j.
+\end{align*}
+Note that this proof works as $z^{(t)}$ depends $p^{(t)}$.
+We then consider the following algorithm:
+\begin{center}
+\fbox{%
+\begin{minipage}{0.6\textwidth}
+\centering
+\texttt{Multi-Armed Bandit Algorithm (Linear Cost)}
+\vspace{1em}
+
+\raggedright
+\textbf{parameter:} $\eta \in (0,1)$ \\
+\textbf{initialize:} $x^{(1)} = (1/d, \ldots, 1/d)$ \\
+\textbf{for} $t = 1, 2, \ldots$ \\
+\quad choose $p^{(t)} \sim x^{(t)}$ and pull the $p^{(t)}$'th arm \\
+\quad receive cost of the arm $y^{(t)}_{p^{(t)}} \in [0,1]$ \\
+\quad \textbf{update} \\
+\qquad $\tilde{x}_{p^{(t)}} = x^{(t)}_{p^{(t)}}\, \exp\left(-\eta z^{(t)}_{p^{(t)}}\right)$ \\
+\qquad for $i \neq p^{(t)}$, $\tilde{x}_i = x^{(t)}_i$ \\
+\qquad $\forall i,\ x^{(t+1)}_i = \frac{\tilde{x}_i}{\sum_j \tilde{x}_j}$
+\end{minipage}%
+}
+\end{center}
+We observe the similarity in the updates between the given algorithm and the normalised EG algorithm. The only difference between this algorithm and the normalised EG algorithm is that in this algorithm, the sub-gradient is given by a one-shot estimate while the sub-gradient in the normalised EG algorithm is assumed to be exact. However, upon close analysis of the Theorem~\ref{thm:EG_local_norm_regret_bound} and the results used to prove it, they do not require $z^{(t)}$ to be a sub-gradient of $f^{(t)}$. The only condition that $z^{(t)}$ has to satisfy is the $\eta z^{(t)}_t \geq 1$, which is trivially satisfied as $z^{(t)}$ is a non-negative vector. We will now prove the following result:
+
+\begin{theorem}[Regret Bound of Linear Cost Multi-Armed Bandit Algorithm]
+$$
+\mathbb{E}\left[\sum_{t=1}^{T} y^{(t)}_{p^{(t)}}\right]
+\leq \min_i \sum_{t=1}^{T} y^{(t)}_i + \frac{\log d}{\eta} + \eta d T.
+$$
+In particular, setting $\eta = \sqrt{\log(d)/(dT)}$ we obtain the regret bound of
+$2\sqrt{d \log(d) T}$.
+\end{theorem}
+\begin{proof}
+    We apply Theorem~\ref{thm:EG_local_norm_regret_bound} to get
+    $$
+    \sum_{t=1}^T \langle x^{(t)} - x, z^{(t)} \rangle
+    \leq \frac{\log(d)}{\eta} + \eta \sum_{t=1}^T ||z^{(t)}||^2_t.
+    $$
+    Applying Theorem~\ref{thm:est_grad_bound} and expanding the definition of $||z||_t$, we have
+    $$
+    \mathbb{E}\left[ \sum_{t=1}^{T} \left( f^{(t)}(x^{(t)}) - f^{(t)}(x) \right) \right] \leq \frac{\log(d)}{\eta} + \eta \sum_{t=1}^T \mathbb{E}\left[ \sum_{i=1}^d x^{(i)}_t (z^{(t)}_i)^2\right]
+    $$
+    We can bound the last term in the following manner:
+    \begin{align*}
+        \mathbb{E}\left[ \sum_{i=1}^d x^{(i)}_t (z^{(t)}_i)^2 | z^{(t-1)}, \dots, z^{(1)}\right]
+        &= \sum_{j=1}^d P(p^{(t)} = j) \sum_{i=1}^d x^{(i)}_t (z^{(t)}_i)^2 \\
+        &= \sum_{j=1}^d x^{(t)}_j \left( x^{(t)}_j \left(\frac{y^{(t)}_j}{x^{(t)}_j}\right)^2 \right) \\
+        &= \sum_{j=1}^d \left( y^{(t)}_j \right)^2 \leq d
+    \end{align*}
+    The simplification of the summand over $i$ is due to the dependence that $z^{(t)}$ has on $p^{(t)}$. The last inequality is due to $y^{(t)} \in [0, 1]^d$.
+    By noting that $f^{(t)}(x^{(t)}) = \langle x^{(t)}, y^{(t)} \rangle = \mathbb{E}[y^{(t)}_{p^{(t)}}]$ (expectation taken over the distribution defined by $x^{(t)}$) and the competing strategy has $x$ to be $0$ for all entries apart from having value $1$ for a single row, combining the bounds give us
+    $$
+    \mathbb{E}\left[\sum_{t=1}^{T} y^{(t)}_{p^{(t)}}\right]
+    \leq \min_i \sum_{t=1}^{T} y^{(t)}_i + \frac{\log d}{\eta} + \eta d T.
+    $$
+\end{proof}
+
+\subsection{Multi-armed Bandit with General Loss}
+We now present a generalisation of this gradient descent approach to a multi-armed bandit problem where the loss function is a black box to us. \joseph{Add attribution later.}
+
+Given a function $f: \mathbb{R}^d \to \mathbb{R}$, with little assumptions on $f$, we consider the quantity $\hat{g} = f(x + \delta u)u$, where $u$ is a random unit vector sampled (uniformly) from an Euclidean sphere. Intuitively and loosely speaking, we would expect the vector $\mathbb{E}[\hat{g}]$ is a quantity that is proportional to the gradient of a smoothed version of $f$. To make this notion more precise, let $U_b$ be the uniform distribution over the unit Euclidean ball (in $\mathbb{R}^d)$ and $U_{sp}$ be the uniform distribution over the unit Euclidean sphere. 
+
+\noindent \textbf{Remark}: A sphere refers to the hollow surface while a ball is the entire solid volume contained by the surface.
+
+\noindent We then define the smoothed version of $f$, $\hat{f}$ to be
+$$ \hat{f}(x) = \mathbb{E}_{v \sim U_b} [f(x + \delta v)]. $$
+We will first show that this smoothed version $\hat{f}$ is a close approximation of $f$.
+
+\begin{lemma}\label{lemma:lipchitz_smooth}
+Let $f$ be an $L$-Lipschitz function and let $\hat{f}$ be defined as above. Then, $|\hat{f}(x) - f(x)| \leq L \delta$.
+\end{lemma}
+\begin{proof}
+    By the definition of $L$-Lipschitz, $|f(x) - f(x + \delta v)| \leq L \delta ||v||$. As $||v|| \leq 1$ (v is sampled from a unit ball), we have $|f(x) - f(x + \delta v)| \leq L\delta$. We apply $\mathbb{E}_{v \sim U_b}[f(x + \delta v) - f(x)]$ and observe that $\mathbb{E}_{v \sim U_b}[f(x + \delta v) - f(x)] \leq \mathbb{E}_{v \sim U_b}[|f(x + \delta v) - f(x)|]$, and the desired result follows.
+\end{proof}
+We will now state a technical result on differentiability and without proof. We refer the reader to~\cite{2005Flaxman}[Section 2, p.g. 5] for the complete proof.
+\begin{lemma}\label{lemma:diff_smooth}
+    $\hat{f}$ is differentiable and we have
+    $$\mathbb{E}_{v \sim U_{sp}}\left[ \frac{d}{\delta}f(x + \delta v)v \right] = \nabla \hat{f}(x).$$
+\end{lemma}
+\noindent We now present the general algorithm:
+\begin{center}
+\fbox{%
+\begin{minipage}{0.7\textwidth}
+\centering
+\texttt{Multi-Armed Bandit Algorithm (General)}
+\vspace{1em}
+
+\raggedright
+\textbf{parameters:} $\eta, \delta > 0$ and a convex set $S \subset \mathbb{R}^d$ \\
+\textbf{initialize:} $\theta^{(1)} = 0$ \\
+\textbf{for} $t = 1, 2, \ldots, T$ \\
+\quad let $x^{(t)} = \operatorname{argmin}_{x \in S} \|x - \eta \theta^{(t)}\|_2$ \\
+\quad pick $v^{(t)} \sim U_{\mathrm{sp}}$ \\
+\quad predict $x^{(t)} + \delta v^{(t)}$ and receive $f^{(t)}(x^{(t)} + \delta v^{(t)})$ \\
+\quad set $z^{(t)} = \frac{d}{\delta} f^{(t)}(x^{(t)} + \delta v^{(t)})\, v^{(t)}$ \\
+\quad update $\bm{\theta}^{(t+1)} = \bm{\theta}^{(t)} - z^{(t)}$
+\end{minipage}%
+}
+\end{center}
+We will present that this generic algorithm has the following regret bound:
+\begin{theorem}
+Consider running the general algorithm on a
+sequence $f^{(1)}, \ldots, f^{(T)}$ of $L$-Lipschitz functions. Let $S$ be a
+convex set and define $B = \max_{u \in S} \|u\|$ and
+$F = \max_{u \in S,\, t \in [T]} f^{(t)}(u)$. Then, for all $u \in S$ we have
+\[
+\mathbb{E}\left[\sum_t \left(f^{(t)}(x^{(t)} + \delta v^{(t)}) - f^{(t)}(u)\right)\right]
+\leq 3L\delta T + \frac{B^2}{2\eta} + \eta T d^2 (F/\delta + L)^2.
+\]
+In particular, setting $\eta = \frac{B}{d(F/\delta + L)\sqrt{2T}}$,
+$\delta = \sqrt{\frac{BdF}{3L}}\, T^{-1/4}$ we obtain that the regret is bounded
+by $O\big(\sqrt{BdFL}\, T^{3/4}\big)$.
+\end{theorem}
+
+\begin{proof}
+    We once again observe the similarity between this general algorithm and the OGD with Lazy Projection algorithm. We first note that for any $x \in S$, 
+    $$ \sum_{t=1}^T \langle z^{(t)}, x^{(t)} - x \rangle \leq \frac{1}{2\eta}||x||_2^2 + \eta \sum_{t=1}^T ||z_t||^2 $$ 
+    \joseph{Need to check if the previous group covered this result, it's Theorem 2.4 from the book.}
+
+    By taking expectation over $v^{(t)}$, we will first show that 
+    $$
+    \mathbb{E}\left[\sum_{t=1}^T (\hat{f}^{(t)}(x^{(t)}) - \hat{f}^{(t)}(x) \right] \leq \mathbb{E}\left[\sum_{t=1}^T \langle z^{(t)}, x^{(t)} - x \rangle \right].
+    $$
+    The above inequality holds as
+    \begin{align*}
+    \mathbb{E}\left[\sum_{t=1}^T \langle z^{(t)}, x^{(t)} - x \rangle \right] = \mathbb{E}\left[\sum_{t=1}^T \langle \nabla f^{(t)}(x^{(t)}), x^{(t)} - x \rangle \right] 
+    \end{align*}
+    and by convexity of $f^{(t)}$, we have
+    \begin{align*}
+    \sum_{t=1}^T (\hat{f}^{(t)}(x^{(t)}) - \hat{f}^{(t)}(x) &\leq \sum_{t=1}^T \langle \nabla f^{(t)}(x^{(t)}), x^{(t)} - x \rangle \\
+    \Rightarrow \mathbb{E} \left[\sum_{t=1}^T (\hat{f}^{(t)}(x^{(t)}) - \hat{f}^{(t)}(x) \right] &\leq \sum_{t=1}^T \langle \nabla f^{(t)}(x^{(t)}), x^{(t)} - x \rangle
+    \end{align*}
+    By applying expectation and taking note that $v^{(t)}$ is on the unit sphere, we have
+    \begin{align*}
+        \mathbb{E}\left[\sum_{t=1}^T \hat{f}^{(t)}(x^{(t)}) - \hat{f}^{(t)}(x) \right] \leq \frac{1}{2\eta}||x||_2^2 + \eta \sum_{t=1}^T \frac{d^2}{\delta^2} \mathbb{E}\left[f^{(t)}(x^{(t)} + \delta v^{(t)})^2\right]
+    \end{align*}
+    By setting $B = \max_{x \in S} ||x||_2^2$ and $F = \max_{x \in S} f^{(t)}(x)$, and applying the Lipschitz property of $f^{(t)}$, we have
+    $$ f^{(t)}(x^{(t)} - \delta v^{(t)}) \leq f^{(t)}(x^{(t)}) + L \delta ||v^{(t)}||_2^2 \leq F + L\delta. $$
+    Combining these inequalities give
+    $$ \mathbb{E}\left[\sum_{t=1}^T (\hat{f}^{(t)}(x^{(t)}) - \hat{f}^{(t)}(x) \right] \leq \frac{B^2}{2\eta} + \eta T d^2 (F/\delta + L)^2. \quad (*) $$
+    By applying the Lipchitzness of $f^{(t)}$ on $f^{(t)}(x^{(t)} + \delta v^{(t)}) - f^{(t)}(x^{(t)})$, we have 
+    $$
+    f^{(t)}(x^{(t)} + \delta v^{(t)}) - f^{(t)}(x^{(t)}) \leq L \delta ||v^{(t)}||_2 \leq L \delta.
+    $$
+    We then apply Lemma~\ref{lemma:lipchitz_smooth}
+    $$ f^{(t)}(x^{(t)}) - \hat{f}^{(t)}(x^{(t)}) \leq L \delta \quad \text{and} \quad f^{(t)}(x) - \hat{f}^{(t)}(x) \leq L \delta. $$
+    and we can get
+    \begin{align*}
+        f^{(t)}(x^{(t)} - \delta v^{(t)}) - f^{(t)}(x) \leq f^{(t)}(x^{(t)}) - f^{(t)}(x) + L \delta \leq \hat{f}^{(t)}(x^{(t)}) - \hat{f}^{(t)}(x) + 3L\delta.
+    \end{align*}
+    Substituting back into $(*)$, we have
+    $$
+    \mathbb{E}\left[\sum_{t=1}^T f^{(t)}(x^{(t)}) - f^{(t)}(x) \right] \leq \frac{B^2}{2\eta} + \eta T d^2 (F/\delta + L)^2 + 3L \delta.
+    $$
+\end{proof}
+
+
+

@@ -1,15 +1,15 @@
 \section{Recap on Follow-The-Regularised-Leader}
-This section will consist of a brief recap of the Follow-the-Regularised-Leader (FoReL) back in Week 7. FoRel is a simple modification of the Follow-The-Leader (FTL) learning rule.  In FTL, in each iteration, we select the decision vector (or the next iterate) which minimises the loss on all past iterations:
+This section will consist of a brief recap of the Follow-the-Regularised-Leader (FoReL) back in Week 7. FoRel \citep{shalev2007online, shalev2007primal} is a simple modification of the Follow-The-Leader (FTL) \citep{kalai2005efficient} learning rule.  In FTL, in each iteration, we select the decision vector (or the next iterate) which minimises the loss on all past iterations
 \begin{define}[Follow-The-Leader]
     The Follow-The-Leader (FTL) learning rule is as such: we select the next iterate my minimising the loss on all past rounds. That is for a convex set $S$,
     \begin{equation}
-        \forall t\; x_t = \arg \min_{x \in S} \left\{\sum_{i = 1}^{t-1} f_i(x)\right\}
+        x^{(t)} = \arg \min_{x \in S} \left\{\sum_{i = 1}^{t-1} f^{(i)}(x)\right\}\hspace{1cm}\forall t
     \end{equation}
 \end{define}
-In FoRel, we add a regularisation term $h$. The goal of the regularisation term is to stabilise the solution.
+In FoRel, we add a regularisation term $h$. The goal of the regularisation term is to stabilise the solution. \joseph{Maybe consider adding Example 2.2 Failure of FTL to motivate the need of FoREL.}
 \begin{define}[Follow-The-Regularised-Leader]\label{defn:forel} The Follow-The-Regularised-Leader (FoREL) learning rule extends FTL by adding a regularisation term $h: S \to \mathbb R$.
     \begin{equation}
-        \forall t\; x_t = \arg \min_{x \in S} \left\{\sum_{i = 1}^{t-1} f_i(x) + h(x)\right\}
+        x^{(t)} = \arg \min_{x \in S} \left\{\sum_{i = 1}^{t-1} f^{(i)}(x) + h(x)\right\}\hspace{1cm}\forall t
     \end{equation}
 \end{define}
 
@@ -45,21 +45,21 @@ The dual norm of the $\ell_2$-norm is again the $\ell_2$-norm (the $\ell_2$-norm
 \subsection{Regret Bound Results for FoReL}
 We give a proof sketch on deriving the regret bound for FoReL. From Week 7's notes, the regret for FoReL can be written as the following when evaluated against a fixed value $x$ as such:
 \begin{equation}\label{eqn:regret_forel}
-    \text{Regret}_T(x) := \sum_{t=1}^T f_t(x_t) - \sum_{t=1}^T f_t(x)
+    \text{Regret}_T(x) := \sum_{t=1}^T f^{(t)}(x^{(t)}) - \sum_{t=1}^T f^{(t)}(x)
 \end{equation}
 To prove the bound for the above expression, recall also that we have the following lemma:
 \begin{lemma}\label{lemma:iterates_forel}
     Let $x_1, x_2, \ldots$ be the iterates due to FoReL using the $\sigma$-strongly convex regulariser $h$. Then for all $x \in S$, we have that \begin{equation}\label{eqn:lemma_forel}
-        \sum_{t=1}^T (f_t(x_t) - f_t(x)) \leq h(x) - h(x_1) + \sum_{t=1}^T (f_t(x_t) - f_t(x_{t+1}))
+        \sum_{t=1}^T (f^{(t)}(x^{(t)}) - f^{(t)}(x)) \leq h(x) - h(x^{(1)}) + \sum_{t=1}^T (f^{(t)}(x^{(t)}) - f^{(t)}(x^{(t+1)})
     \end{equation}
 \end{lemma}
-Furthermore, it is also shown that if for all $t$, if $f_t$ is $L_t$-Lipschitz with respect to $||\cdot||$, then we further have that 
+Furthermore, it is also shown that if for all $t$, if $f^{(t)}$ is $L_t$-Lipschitz with respect to $||\cdot||$, then we further have that 
 \begin{equation}\label{eqn:lemma_forel_lipschitz}
-    f_t(x_t) - f_t(x_{t+1}) \leq L_t ||x_t - x_{t+1}|| \leq \frac{L_t^2}{\sigma}
+    f^{(t)}(x^{(t)}) - f^{(t)}(x^{(t+1)}) \leq L_t ||x^{(t)} - x^{(t+1)}|| \leq \frac{L_t^2}{\sigma}
 \end{equation} 
 Again, interested readers may refer to Week 7's notes or \cite{shalev2025online} for the full derivation. Combining Equations~\ref{eqn:lemma_forel} and \ref{eqn:lemma_forel_lipschitz} we have that the regret bound for FoReL using the regulariser $h$ is as follows:
 \begin{equation}\label{eqn:forel_regre_with_min}
-    \text{Regret}_T(x) \leq h(x) - h(x_1) + \frac{TL^2}{\sigma} \leq h(x) - \min_{v \in S} h(v) + \frac{TL^2}{\sigma}
+    \text{Regret}_T(x) \leq h(x) - h(x^{(1)}) + \frac{TL^2}{\sigma} \leq h(x) - \min_{v \in S} h(v) + \frac{TL^2}{\sigma}
 \end{equation} where $L$ is such that $\frac{1}{T}\sum_{t=1}^T L_t^2 \leq L^2$.
 
 \subsection{The Problem with FoReL}

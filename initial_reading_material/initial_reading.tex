@@ -10,6 +10,7 @@
 \usepackage{titling} % Required for the custom subtitle hook
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{booktabs, bm}
 \usepackage{tikz}
 \usepackage{multirow}
 \usepackage{multicol}
@@ -45,6 +46,7 @@
 \usepackage{xcolor} % Required for text color
 \newcommand{\todo}[1]{{\color{red}\bfseries [TODO: #1]}}
 \newcommand{\russ}[1]{{\color{purple} (Russ: {#1})}}
+\newcommand{\joseph}[1]{{\color{purple} (Joseph: {#1})}}
 
 
 % Define the \subtitle command using titling hooks
@@ -76,7 +78,7 @@
 % \end{enumerate}}
 
 \begin{abstract}
-    In online convex optimisation, a decision maker must iterative minimise cumulative loss in a dynamic environment. At each time step $t=1\ldots T$, the learner selects a decision vector $x_t$ from a convex feasible set. Only after committing to this choice does the environment reveal a convex loss function $f_t$, causing the learner to incur a loss of $f_t(x_t)$. The core objective of the learner is to minimise the regret, defined as the the difference between the learner's accumulated loss over time and the total loss of the best possible fixed decision chosen in hindsight. Standard online gradient descent relies on Euclidean projections, which can be highly suboptimal for decision sets with distinct geometric structures, such as the probability simplex. Online Mirror Descent (OMD) is a fundamental algorithm that generalises classical gradient descent to non-Euclidean spaces. We provide an overview of online mirror descent, exploring its variants, regret bounds, and applications. We begin by reviewing foundational concepts from Week 7 that establish the basis for our analysis. Next, we introduce essential analytical tools before concluding with practical use cases.
+    In online convex optimisation, a decision maker must iterative minimise cumulative loss in a dynamic environment. At each time step $t=1\ldots T$, the learner selects a decision vector $x^{(t)}$ from a convex feasible set. Only after committing to this choice does the environment reveal a convex loss function $f^{(t)}$, causing the learner to incur a loss of $f^{(t)}(x^{(t)})$. The core objective of the learner is to minimise the regret, defined as the the difference between the learner's accumulated loss over time and the total loss of the best possible fixed decision chosen in hindsight. Standard online gradient descent relies on Euclidean projections, which can be highly suboptimal for decision sets with distinct geometric structures, such as the probability simplex. Online Mirror Descent (OMD) is a fundamental algorithm that generalises classical gradient descent to non-Euclidean spaces. We provide an overview of online mirror descent, exploring its variants, regret bounds, and applications. We begin by reviewing foundational concepts from Week 7 that establish the basis for our analysis. Next, we introduce essential analytical tools before concluding with practical use cases.
 \end{abstract}
 
 % \section{Brief Recap of Part I}
@@ -84,6 +86,7 @@
 \input{initial_reading_material/0_recap_FoREL}
 \input{initial_reading_material/1_online_mirror_descent}
 \input{initial_reading_material/2_new_tools_for_analysis}
+\input{initial_reading_material/3_applications}
 
 \newpage
 \bibliographystyle{unsrtnat}

@@ -1,0 +1,392 @@
+\section{Online Mirror Descent}
+\begin{frame}{What is Classical Mirror Descent}
+\begin{itemize}
+    \item Consider the standard gradient descent update rule: $$x^{(t+1)} = x^{(t)} - \eta \nabla f(x^{(t)})$$\pause
+    \item Underlying assumption: The iterates ($x^{(1)}, \ldots, x^{(T)}$) are assumed to be in the same space as the gradients ($\nabla f(x^{(1)}), \ldots, \nabla f(x^{(T-1)})$) - which is not true in general! \pause
+    \item E.g what happens if your search space is the $d$-dimension probability simplex $\Delta_d$?
+\end{itemize}
+\begin{block}{Main idea of Mirror Descent}
+    Assume the iterate-space (primal space) and the gradient-space (dual space) are spaces of 2 distinct geometries, $\mathcal{X}, \theta$ respectively
+\end{block}
+\end{frame}
+
+\begin{frame}{The Primal-Dual Space Map}
+We therefore need a way to ``map" from the primal space $\mathcal{X}$ to the dual space $\theta$. This map also has to be \textbf{invertible}, as we want to obtain our next iterate in the primal space too. To define this map:
+\begin{itemize}
+    \item Fix a norm $||\cdot||$
+    \item Choose some differentiable, convex function $h: \mathbb{R}^n \to \mathbb{R}$ that is $\sigma$-strongly convex.\pause
+    \item Use $h$ to define a regulariser called the \textit{Bregman Divergence}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Bregman Divergence, $D_h$}
+    \begin{block}{Bregman Divergence}
+        The Bregman divergence with respect to a strictly convex function $h$ (denoted by $D_h$), of two points, $x$ and $x'$ is defined as follows:
+        \begin{equation}
+            D_h(x || x') := h(x) - h(x') - \langle\nabla h(x'),  x - x' \rangle
+        \end{equation}
+    \end{block}
+    \pause
+    \begin{columns}[c]
+        \begin{column}{0.5\textwidth}
+            \begin{figure}
+                \centering
+                \includegraphics[width=\linewidth]{slides//figures/bregmandiv.png}
+                \caption{Enter Caption}
+                \label{fig:placeholder}
+            \end{figure}
+        \end{column}
+        \pause       
+        \begin{column}{0.48\textwidth}
+            \centering 
+            Intuitively, it is the \textit{distance} from the function $h$ to its linear approximation.
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{The Mirror Map}
+    Turns out $\nabla h$ is the map that we want. To show that $\nabla h$ is the map:
+    \begin{itemize}
+        \item Start off with a single proximal gradient step
+        \begin{equation}\label{eq:proximal_gradient_update}
+        x^{(t+1)} = \arg \min_{x} \left\{\eta \langle \nabla f(x^{(t)}), x\rangle + R(x)\right\} 
+        \end{equation} where $R$ is some regularisation function. 
+    \end{itemize}
+
+    
+\end{frame}
+
+\begin{frame}{The Mirror Map}
+    Turns out $\nabla h$ is the map that we want. To show that $\nabla h$ is the map:
+    \begin{itemize}
+        \item Start off with a single proximal gradient step
+        \begin{equation}\label{eq:proximal_gradient_update}
+        x^{(t+1)} = \arg \min_{x} \left\{\eta \langle \nabla f(x^{(t)}), x\rangle + R(x)\right\} 
+        \end{equation} where $R$ is some regularisation function. 
+    \pause
+    \item Set $R(x) = D_h(x||x^{(t)})$ based on the $h$ we have chosen
+    \pause
+    \item Solve the minimisation problem of Equation~\ref{eq:proximal_gradient_update} to get the following update:
+    \begin{equation}
+        \nabla h(x^{(t+1)}) \gets \nabla h(x^{(t)}) - \eta \nabla f(x^{(t)})
+    \end{equation}
+    \end{itemize}
+    \pause
+    Notice how instead of $x^{(t)}$, we have $\nabla h(x^{(t)})$. We denote this ``mapped" variable as $\theta^{(t)} = \nabla h(x^{(t)})$
+\end{frame}
+
+
+\begin{frame}{Mirror Descent Algorithm}
+    \begin{columns}[t] % Aligns content at the top
+        \begin{column}{0.48\textwidth}
+            \textbf{Gradient Descent}
+            \begin{align*}
+                x^{(t+1)} &= x^{(t)} - \eta \nabla f(x^{(t)})
+            \end{align*}
+        \end{column}\pause       
+        \begin{column}{0.48\textwidth}
+            \textbf{Mirror Descent}
+            \begin{align*}
+                \theta^{(t)}&= \nabla h(x^{(t)})\\
+                \theta^{(t+1)} &\gets \theta^{(t)} - \eta \nabla f(x^{(t)})\\
+                x^{(t+1)}&=\Pi((\nabla h)^{-1}(\theta^{(t+1)}))
+            \end{align*}
+        \end{column}
+\end{columns}
+\vspace{0.5cm}\pause
+Notice for Mirror Descent, we do the gradient step in the dual space instead of the primal space. Also note the following:
+\begin{enumerate}
+    \item $h$ is strongly-convex $\implies \nabla h$ is invertible
+    \item The inverse map might not give a feasible $x$. A projection $\Pi$ might be needed to ensure the next iterate is feasible
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Mirror Descent Algorithm}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{slides/figures/mirror_descent.png}
+        \caption{Mirror Descent}
+        \label{fig:mirror_descent}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Online Mirror Descent (OMD)}
+    Mirror Descent but with the following differences:
+    \begin{enumerate}
+    \item \textbf{Objective Function} The objective function for online mirror descent changes at every step. At step $t$, the algorithm must commit to a prediction $x^{(t)}$ before the ``environment" reveals the specific loss function $f^{(t)}$ for that iteration.
+    \item \textbf{Gradient} In online mirror descent, we use the \textit{sub-gradient} of the newly revealed function $f^{(t)}$ for that iteration. We denote the sub-gradient as $z^{(t)} \in \partial f^{(t)}(x^{(t)})$. This implies that the update rule is now \begin{equation}
+        \theta^{(t+1)}=  \theta^{(t)} - \eta \cdot z^{(t)}\qquad z^{(t)} \in \partial f^{(t)}(x^{(t)})
+    \end{equation}
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{A note on subgradients}
+    A sub-gradient of a function is a more generalised form of a gradient. More specifically, we define sub-gradients as follows:
+    \begin{block}{Sub-gradients}\label{defn:subgradient}
+    A value $z$ is a sub-gradient of $f$ at $x$ if for all $x' \in S$\begin{equation}
+        f(x') \geq f(x) + \langle x' - x, z\rangle
+    \end{equation}
+    The set of sub-gradients of $f$ at $x'$ is denoted by $\partial f(x')$. 
+\end{block}\pause
+Furthermore, if $f$ is differentiable at $x'$, then $\partial f(x') = \{\nabla f(x')\}$ (i.e $\partial f(x^*)$ is a singleton and its only element is the gradient of $f$ at $x'$).
+\end{frame}
+
+\begin{frame}{A Generic Regret Bound}
+\begin{block}{Generic Regret Bound for OMD Algorithms}
+Suppose we select a $\frac{1}{\eta}$-strongly convex regulariser $h$ and let $f_t$ be linear functions that are $L_t$-Lipschitz. Then we have the following generic regret bound
+    \begin{equation*}
+        \text{Regret}_T(x) \leq h(x) - \min_{v\in S}h(v) + \eta \sum_{t=1}^T ||z^{(t)}||_*^2
+    \end{equation*}
+\end{block}\pause
+The old framework FoReL can help us achieve that bound!
+\end{frame}
+
+\begin{frame}{Linearisation Trick - FoReL and OMD}
+    Recall the mirror descent step:
+    \begin{align}
+        x^{(t+1)} \gets (\nabla h)^{-1}(\theta^{(t+1)}) := \mathbf g(\theta^{(t+1)})
+    \end{align}
+    We can re-write $g(\theta^{(t+1)}) = \arg\max_{x \in S} \{\langle \theta^{(t+1)}, x\rangle - h(x)\}$ 
+    
+    To show this:
+    \begin{itemize}
+        \item Start with Proximal Gradient Step: $x^{(t+1)} = \arg \min_{x} \left\{\eta \langle \nabla f^{(t)}(x^{(t)}), x\rangle + D_h(x || x^{(t)})\right\}$
+        \item Expand expression of Bregman divergence and remove constants to get $\arg\min_x \{ \eta \langle \nabla f^{(t)}(x^{(t)}), x \rangle + h(x) - \langle \nabla h(x^{(t)}), x \rangle \}$
+        \item Factor out $x$ term and substitute the update rule $\theta^{(t+1)} =\nabla h(x^{(t)}) - \eta \nabla f^{(t)}(x^{(t)})$
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Linearisation Trick - FoReL and OMD}
+    Suppose we apply FoReL on a sequence of linear functions $f^{(t)}(x) = \langle x, z^{(t)} \rangle$ with some regulariser $h(x)$. \pause
+    \begin{align*}
+    x^{(t+1)} &= \arg\min_{x \in S} \left\{\sum_{i=1}^t f^{(i)}(x) + h(x) \right\} \\
+    &= \arg\min_{x \in S} \left\{\sum_{i=1}^t \langle x, z^{(t)} \rangle  + h(x)\right\} \\
+    &= \arg\max_{x \in S} \left\{\left\langle x, \underbrace{-\sum_{i=1}^t z^{(i)}}_{\theta^{(t+1)}} \right\rangle - h(x)\right\}
+\end{align*}\pause
+We get $g(\theta^{(t+1)})$ from OMD alongside $\theta^{(t+1)} \gets\theta^{(t)} - z^{(t)}.$
+\end{frame}
+
+\begin{frame}{Linearisation Trick - FoReL and OMD}
+    \begin{block}{}
+        OMD $\iff$ FoReL on sequence of linear functions
+    \end{block}
+    With this relationship, we can borrow regret bounds results from FoReL and re-use them in OMD.\pause
+    \begin{itemize}
+        \item If $f^{(t)}$ is non-linear but still convex, pick $z^{(t)} \in \partial f(x^{(t)})$\pause
+    \end{itemize}
+    \begin{equation}\label{eqn:linearisation_trick}
+        \underbrace{f^{(t)}(x^{(t)}) - f^{(t)}(x)}_{\text{Regret for non-linear $f^{(t)}$}} \leq \langle x^{(t)} - x, z^{(t)} \rangle = \underbrace{\langle x^{(t)}, z^{(t)}\rangle - \langle x, z^{(t)} \rangle}_{\text{Regret for linear functions}}
+    \end{equation}
+    The inequality is due to the definition of sub-gradient!
+    \begin{block}{Main Takeaway of Linearisation Trick}
+        Regret with respect to non-linear functions can still be upper bounded by that of linear functions.
+    \end{block}
+\end{frame}
+
+\begin{frame}{Proof of Generic Regret Bound}
+    \begin{itemize}
+        \item Recall OMD $\iff$ FoReL on sequence of linear functions, we use Equation~\ref{eqn:lemma_forel}
+    \end{itemize}
+    $\text{Regret}_T(x) \leq h(x) - h(x^{(1)}) + \sum_{t=1}^T (f^{(t)}(x^{(t)}) - f^{(t)}(x^{(t+1)}))$
+    \begin{alertblock}{Very Important Note on $f^{(t)}$}
+        $f^{(t)}$ is w.r.t to FoReL, not the loss function of OMD!
+    \end{alertblock}
+    
+    \begin{itemize}
+        \item By Equation~\ref{eqn:lemma_forel_lipschitz}, $\sum_{t=1}^T (f^{(t)}(x^{(t)}) - f^{(t)}(x^{(t+1)})) \leq \sum_{t=1}^T \frac{L_t^2}{\sigma}$
+        \item Sub $\sigma= \frac{1}{\eta}$ and substitute $f^{(t)}$ as linear functions instead. Since $f^{(t)}(x) = \langle \theta^{(t)}, x\rangle \implies L_t = ||z_t||_*$
+        \item Last step: $\min_{v \in S} h(v) \leq h(x^{(1)})$ yields the final regret bound.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Variants of OMD}
+    \begin{itemize}
+        \item Normalised Exponentiated Gradient (EG) - $h(x) = \frac{1}{\eta}\sum_{i=1}^d x_i \log x_i$ and norm: $||\cdot||_1$, $S = \Delta_d$
+        \item Online Gradient Descent With Lazy Projections - $h(x) = \frac{1}{2\eta}||x||_2^2$ and norm: $||\cdot||_2$
+        \item $p$-norm Algorithm ($p\geq 2$) - \newline$h(x) = \frac{1}{2\eta(q-1)}||x||_q^2$ and norm: $\ell_q$ where $\frac{1}{p} + \frac{1}{q} = 1$
+        \item Many more, but we will focus on the above 3.
+    \end{itemize}
+    Note: All the $h$ above are $\frac{1}{\eta}$-strongly convex functions
+\end{frame}
+
+\begin{frame}{Normalised Exponentiated Gradient (EG)}
+\begin{itemize}
+    \item $h(x) = \frac{1}{\eta}\sum_{i=1}^d x_i \log x_i$ (Entropic Regulariser)
+    \item Norm: $||\cdot||_1$
+    \item $S = \Delta_d$
+\end{itemize}\pause
+
+Recall that we derived $g$ relating $\theta^{(t+1)}$ with $x^{(t+1)}$ \pause
+\begin{equation*}
+    x^{(t+1)} = g(\theta^{(t+1)}) = \arg\max_{x \in \Delta_d} \left\{\sum_{i=1}^d \theta_i^{(t+1)}x_i - \frac{1}{\eta}\sum_{i=1}^d x_i \log x_i\right\}
+\end{equation*} which is solvable by Lagrange multipliers (see notes) and it yields the following:
+\begin{equation}
+    x_i^{(t+1)} = \frac{\exp(\eta \theta_i^{(t+1)})}{\sum_{j=1}^d \exp(\eta \theta_j^{(t+1)})} \hspace{3cm}\text{(Softmax)}
+\end{equation}    
+\end{frame}
+
+\begin{frame}{Normalised EG Algorithm}
+    \begin{enumerate}
+    \item Set $w_1 = (1/d, 1/d, \ldots, 1/d)$
+    \item For all $i$: $x_i^{(t+1)} =\frac{x_i^{(t)} \exp(-\eta z_i^{(t)})}{\sum_{j=1}^d x_j^{(t)} \exp(-\eta z_j^{(t)})} $ where $z^{(t)} \in \partial f^{(t)}(x^{(t)})$
+\end{enumerate}
+\pause
+\begin{block}{Normalised EG Regret Bound}
+    Suppose that $f^{(1)}, \ldots, f^{(T)}$ are a sequence of convex functions in which $f^{(t)}$ is $L_t$-Lipschitz with respect to $||\cdot||_1$. Then
+    \begin{equation*}
+        \text{Regret}_T(\Delta_d) \leq \frac{\log d}{\eta} + \eta TL^2
+    \end{equation*}
+    where $L$ is such that $\frac{1}{T}\sum_{t=1}^TL_t^2 \leq L^2$
+\end{block}
+\end{frame}
+
+\begin{frame}{Regret Bound of Normalised EG}
+    We can re-use results from FoReL again!
+    \begin{align*}
+        \text{Regret}_T(x) &\leq h(x) - \min_{v \in \Delta_d} h(v) + \sum_{t=1}^T \frac{L_t^2}{\sigma}\\
+        &\leq h(x) - \min_{v \in \Delta_d} h(v) + \eta TL^2 \qquad \left(\sigma = \frac{1}{\eta}\wedge \frac{1}{T}\sum_{t=1}^TL_t^2 \leq L^2\right)
+    \end{align*}\pause
+    Observe $h(x)$ is actually negative entropy, which is minimised when $x_i = 1/d$ for all $i$ (Uniform distribution). Hence
+    \begin{align*}
+        h(x) - \underbrace{\frac{1}{\eta}\sum_{i=1}^d \frac{1}{d} \log \frac{1}{d}}_{\min_{v \in \Delta_d} h(v)} + \eta TL^2= h(x) + \frac{\log d}{\eta}  + \eta TL^2
+    \end{align*}
+\end{frame}
+
+\begin{frame}{Regret Bound of Normalised EG}
+    Final step is that $h(x)$ is maximised at one of the vertices of the simplex (i.e standard basis vector of simplex), hence $h(x) \leq \frac{1}{\eta} \log 1 = 0$ which yields an expression independent of $x$!\pause
+
+    \begin{equation}\label{eqn:neg_regret}
+    \boxed{\text{Regret}_T(\Delta_d) \leq \frac{\log d}{\eta} + \eta TL^2}
+\end{equation}
+In particular, if $\eta = \frac{\sqrt{\log d}}{L \sqrt{2T}}$, then we have $$\text{Regret}_T(\Delta_d) \leq L\sqrt{2T \log d}$$.
+\end{frame}
+
+\begin{frame}{Online Gradient Descent with Lazy Projections}
+    \begin{itemize}
+    \item $h(x) = \frac{1}{2\eta}||x||_2^2$ (Euclidean Regulariser)
+    \item Norm: $||\cdot||_2$
+    \item $S = \Delta_d$
+\end{itemize}\pause
+Again, using the definition of $g$, we derive some update rule:\pause
+\begin{align*}
+    g(\theta) &= \arg\max_{x \in S} \left\{\langle x, \theta\rangle - \frac{1}{2\eta}||x||_2^2\right\} = \arg\max_{x \in S} \left\{\langle x, \eta\theta\rangle - \frac{1}{2}||x||_2^2\right\} \\
+    &= \arg\min_{x \in S} \left\{\frac{1}{2}||x||_2^2 - \langle x, \eta\theta\rangle\right\} \\
+    &= \arg\min_{x \in S} \left\{\frac{1}{2}||x||_2^2 - \langle x, \eta\theta\rangle + \frac{1}{2}||\eta\theta||_2^2\right\} \hspace{0.3cm}(\because \text{complete the square)}\\
+    &= \arg\min_{x \in S} \frac{1}{2}||x - \eta\theta||_2^2 =\arg\min_{x \in S} ||x - \eta\theta||_2 
+\end{align*}
+\end{frame}
+
+\begin{frame}{OGD with Lazy Projections Algorithm}
+    The update rule derived in the previous slide yields the following algorithm:\pause
+    \begin{enumerate}
+    \item Set $\theta^{(1)} = 0$ (zero or the zero-vector)
+    \item for $t = 1 \ldots T$, \begin{enumerate}
+        \item $x^{(t)} = \arg\min_{x \in S} ||x - \eta \theta^{(t)}||_2$
+        \item $\theta^{(t+1)} \gets \theta^{(t)} - z^{(t)}$ where $z^{(t)} \in \partial f^{(t)}(x^{(t)})$
+    \end{enumerate}
+\end{enumerate}
+Why Lazy?\begin{itemize}
+    \item Usual Steps: Gradient Step $\to$ Project to $S$ $\to$ Use projected point as next iterate
+    \item This Algorithm: Gradient Step on un-projected point $\to$ Projects it to next iterate
+\end{itemize}
+It is lazy in the sense that it accumulates gradient updates in an unconstrained space and delays the projection step until a feasible output is strictly required.
+\end{frame}
+
+\begin{frame}{Regret Bound for OGD with Lazy Projection}
+    \begin{block}{OGD with Lazy Projection Regret Bound}
+    Suppose that $f^{(1)}, \ldots, f^{(T)}$ are a sequence of convex functions in which $f^{(t)}$ is $L_t$-Lipschitz with respect to $||\cdot||_2$. Then
+    \begin{equation*}
+        \text{Regret}_T(x) \leq \frac{1}{2\eta}||x||_2^2 + \eta TL^2
+    \end{equation*}
+    where $L$ is such that $\frac{1}{T}\sum_{t=1}^TL_t^2 \leq L^2$
+\end{block}
+\pause
+Derivation is simple as it follows the same initial steps as above except the following:
+\begin{itemize}
+    \item $\min_{v \in S} h(v) = \min_{v \in S}\frac{1}{2\eta}||v||_2^2 \geq 0$ now
+    \item We cannot simply upper bound $h(x)$ with some expression independent of $x$.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Regret Bound for OGD with Lazy Projection}
+    \begin{block}{OGD with Lazy Projection Regret Bound}
+    Suppose that $f^{(1)}, \ldots, f^{(T)}$ are a sequence of convex functions in which $f^{(t)}$ is $L_t$-Lipschitz with respect to $||\cdot||_2$. Then
+    \begin{equation*}
+        \text{Regret}_T(x) \leq \frac{1}{2\eta}||x||_2^2 + \eta TL^2
+    \end{equation*}
+    where $L$ is such that $\frac{1}{T}\sum_{t=1}^TL_t^2 \leq L^2$
+\end{block}
+\pause
+In particular, if there exists $B \geq \max_{x \in S}||x||_2$, and $\eta = \frac{B}{L\sqrt{2T}}$, we have a new regret bound for the Online Gradient Descent with Lazy Projection algorithm with 
+$$\text{Regret}_T(S) \leq BL \sqrt{2T}$$.
+\end{frame}
+
+\begin{frame}{$p$-norm Algorithm}
+The $p$-norm algorithm ($p \geq 2$ is the parameter) extends the OMD framework by substituting the Euclidean or entropic regulariser with a generalised $q$-norm regulariser.
+\begin{itemize}
+    \item $h(x) = \frac{1}{2\eta (q - 1)}||x||_q^2$
+    \item Norm: $||\cdot||_q$ where $\frac{1}{p} + \frac{1}{q} = 1$. So $p \geq 2 \implies q \in (1, 2]$ 
+    \item $S = \mathbb R^d$
+\end{itemize}\pause
+By using $h(x)$, we arrive at a rather complicated expression of $g(\theta)$ which we will not derive here.
+\begin{equation}\label{eqn:p_norm_g}
+    g_i(\theta) = \eta \frac{\text{sgn}(\theta_i)  |\theta_i|^{p-1}}{||\theta||_p^{p-2}}
+\end{equation} where $p \geq 2$ and $||\theta||_p := \left(\sum_{i=1}^d |\theta_i|^p\right)^{1/p}$. 
+\end{frame}
+
+\begin{frame}{Regret Bound for $p$-norm algorithm}
+    Again, with the exact same steps as that for OGD with Lazy Projections. We arrive at \begin{equation}
+    \boxed{\text{Regret}_T(x) \leq \frac{1}{2\eta (q - 1)}||x||_q^2 + \eta TL^2} 
+\end{equation}
+In particular, if all the iterations $x$ are such that $x \in S = \{x : ||x||_q \leq B\}$, and that $\eta = \frac{B}{L\sqrt{\frac{2T}{q-1}}}$, then we have that $$\text{Regret}_T(S) \leq BL\sqrt{\frac{2T}{q-1}}$$.
+\end{frame}
+
+\begin{frame}{Versatility of $p$-norm}
+    Recall that $\frac{1}{p} + \frac{1}{q} = 1$. So $p \geq 2 \implies q \in (1, 2]$. Let us examine what the behaviour of the algorithm is by analysing $h(x)$ at both extremes of $q$.
+    \begin{itemize}
+        \item Case 1: (Easier) $q = 2 \implies h(x) = \frac{1}{2\eta}||x||_2^2$ (Euclidean Regulariser) \pause
+        \item Case 2: (Tricky) $q \to 1^+$: \begin{equation*}
+            h(x) = \frac{||x||_q^2}{2\eta(q-1)} \to h_1(x) = \frac{||x||_q^2 - 1}{2\eta(q-1)}
+        \end{equation*}
+    \end{itemize}\pause
+    Why is this the case? The next iterate, $x^{(t+1)} = g(\theta^{(t+1)})$ remains the same (a.k.a algorithm doesnt change)
+    \begin{align*}
+    g(\theta) &= \arg\max_{x \in S} \{\langle \theta, x \rangle - h(x)\}= \arg\max_{x \in S} \left\{\langle \theta, x \rangle - \left(h(x) - \frac{1}{2\eta (q-1)}\right)\right\}\\
+     &= \arg\max_{x \in S} \{\langle \theta, x \rangle - h_1(x)\}
+\end{align*}
+\end{frame}
+
+\begin{frame}{Versatility of $p$-norm}
+    How does $h_1$ help in our analysis?
+    \begin{align*}
+    \lim_{q \to 1^+} h_1(x) &= \lim_{q \to 1^+} \frac{||x||_q^2 - 1}{2\eta(q-1)}\\
+    &= \lim_{q \to 1^+}\frac{\frac{\partial}{\partial q}[(\sum_{i=1}^d x_i)^{2/q}-1]}{\frac{\partial}{\partial q}(2 \eta (q-1))} \hspace{1.5cm}(\because \text{L'Hopital's Rule})\\
+    &= \frac{||x||_1^2(-2 \log(\sum_{i=1}^d |x_i|)+ 2 \frac{\sum_{i=1}^d |x_i|\log|x_i|}{\sum_{i=1}^d |x_i|})}{2\eta}
+\end{align*}\pause
+Using the fact that $x \in \Delta_d$, we have $\sum_{i=1}^d |x_i|=1$ and $||x||_1^2 = 1$. We get 
+\begin{equation*}
+    \lim_{q \to 1^+} h_1(x) = \frac{1}{\eta} \sum_{i=1}^d x_i \log x_i\qquad(\text{Entropic Regulariser})
+\end{equation*}
+\end{frame}
+
+\begin{frame}{Versatility of $p$-norm}
+    Indeed, what we have shown is that by varying $q$ (indirectly via $p$), we are able to interpolate between the properties of the entropic and Euclidean regularisations. Furthermore, if we let $p = \log d$, we can have: \begin{align*}
+    \text{Regret}_T(S) &\leq BL \sqrt{\frac{2T}{q-1}}\\
+    &= BL \sqrt{\frac{2T}{1/(p-1)}} &\because \,\frac{1}{p} + \frac{1}{q} = 1\\
+    &= BL \sqrt{2T(\log d - 1)} = \mathcal{O}(BL\sqrt{T\log d})
+\end{align*}
+\end{frame}
+
+\begin{frame}{What we have seen}
+    \begin{itemize}
+        \item Brief Recap for FoReL and its regret bounds
+        \item Classical Mirror Descent 
+        \item Online Mirror Descent and its relation to FoReL
+        \item Variants of OMD algorithms and their regret bounds
+    \end{itemize}
+    \pause
+    We have seen how we (heavily) utilised results from the FoReL framework to derive the regret bounds of different variants of OMD algorithms. We now ask the following:
+    \begin{block}{}
+        Can we have a much \textit{simpler} approach where we can obtain \textit{tighter} bounds?
+    \end{block}
+\end{frame}

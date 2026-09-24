@@ -9,12 +9,13 @@
 \documentclass{beamer}
 \usepackage{tikz}
 \usetheme{Copenhagen}
+\usepackage{booktabs}
 \usecolortheme{default}
-
-\title[Start] %optional
+\setbeamertemplate{headline}{}
+\title[Online Mirror Descent, Regret Bounds and Applications] %optional
 {Online Convex Optimisation - Part II}
-\subtitle{Online Mirror Descent and Limited Feedback Bandits}
-\author[Teoh, Tan] % (optional)
+\subtitle{Online Mirror Descent, Regret Bounds and Applications}
+\author[CS6216 Group 8a] % (optional)
 {Teoh Tze Tzun\inst{1} \and Tan Kai Min, Russell\inst{1}}
 
 \institute[VFU] % (optional)
@@ -44,10 +45,107 @@
 \begin{document}
 \frame{\titlepage}
 %---------------------------------------------------------
-%Highlighting text
-\section{Recap}
-\begin{frame}
-\frametitle{Highlighting text}
-
+\section{Online Convex Optimisation}
+\begin{frame}{What is Online Convex Optimisation (OCO)}
+\pause
+\begin{columns}[t] % Aligns content at the top
+        \begin{column}{0.48\textwidth}
+            \textbf{Convex Optimisation (CO)}
+            \begin{align*}\\
+                \text{minimise } &f(x)\\
+                \text{subject to }&g^{(i)}(x) \geq 0\\
+                &h_j(x) =0
+            \end{align*}
+        where $f$ is convex and the feasible set due to the constraints are also convex
+        \end{column}\pause       
+        \begin{column}{0.48\textwidth}
+            \textbf{Online Convex Optimisation (OCO)}
+            \begin{align*}
+                \text{Input }&: \text{Convex Set }S\\
+                \text{For }t&=1\ldots T:\\
+                &\text{predict } x^{(t)} \in S\\
+                &\text{receive loss function }f^{(t)}: S \to \mathbb R\\
+                &\text{learn loss }f^{(t)}(x^{(t)})
+            \end{align*}
+            where $f^{(t)}$ is a convex function.
+        \end{column}
+\end{columns}
+\vspace{0.5cm}
+\pause
+Their objectives are also different. It is clear that in CO that we want to minimise our objective function, but in OCO we minimise something called the \textbf{regret}.
 \end{frame}
+
+\begin{frame}{Regret}
+\begin{block}{Definition of Regret}
+Regret with respect to a fixed choice $x$ is defined as
+    \begin{equation}
+    \text{Regret}^{(t)}(x) = \underbrace{\sum_{t=1}^T f^{(t)}(w^{(t)})}_{\text{Algorithm's loss}} - \underbrace{\sum_{t=1}^Tf^{(t)}(x)}_{\text{Fixed choice total loss}}
+\end{equation}
+\end{block}
+\pause
+Intuitively, regret is the extra total loss an algorithm suffers over time compared to the \textit{single best fixed choice it could have made if it had known all the data from the beginning}.
+\end{frame}
+
+\section{Recap from Part I}
+\begin{frame}{Follow the Regularised Leader (FoReL)}
+In Week 7, the group gave the following frameworks for OCO:\pause
+\begin{itemize}
+    \item Follow-The-Leader (FTL): 
+    select the next iterate my minimising the loss on all past rounds.
+    \begin{equation}
+         x^{(t)} = \arg \min_{x \in S} \left\{\sum_{i = 1}^{t-1} f^{(i)}(x)\right\}\qquad\forall\,t
+    \end{equation}\pause
+    \item Follow-The-Regularised-Leader (FoReL):
+    extends FTL by adding a regularisation term $h: S \to \mathbb R$ for stability
+    \begin{equation}
+        x^{(t)} = \arg \min_{x \in S} \left\{\sum_{i = 1}^{t-1} f^{(i)}(x) + h(x)\right\}\qquad\forall\,t
+    \end{equation}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Regret Bound Results for FoReL}
+Suppose we assume the following:
+\begin{itemize}
+    \item Regulariser $h$ is $\boldsymbol{\sigma}$\textbf{-strongly convex} w.r.t $||\cdot||$ norm.
+    i.e for any $x' \in S$, we have that $\forall z \in \partial h(x'),\;\forall x \in S,$\begin{equation*}
+         h(x) \geq h(x') + \langle z, x - x' \rangle + \frac{\sigma}{2} || x - x' ||^2
+    \end{equation*}
+\pause
+    \item $f^{(t)}$ is $\mathbf{L_t}$\textbf{-Lipschitz} i.e for all $x, x' \in S$ we have $$|f^{(t)}(x) - f^{(t)}(x')| \leq L_t||x-x'||$$
+\end{itemize}
+We have the following bounds:
+        \begin{equation}\label{eqn:forel_regre_with_min}
+        \begin{aligned}
+    \text{Regret}_T(x) &\leq h(x) - h(x^{(1)}) + \frac{TL^2}{\sigma} \leq h(x) - \min_{v \in S} h(v) + \frac{TL^2}{\sigma}
+    \end{aligned}
+\end{equation} 
+where $L$ is such that $\frac{1}{T}\sum_{t=1}^T L_t^2 \leq L^2$.
+\end{frame}
+
+\begin{frame}{Proof Sketch of Regret Bound}
+We first have a lemma from Week 7: \begin{lemma}\label{lemma:iterates_forel}
+    Let $x^{(1)}, x^{(2)}, \ldots$ be the iterates due to FoReL using the $\sigma$-strongly convex regulariser $h$. Then for all $x \in S$, we have that \begin{equation}\label{eqn:lemma_forel}
+        \sum_{t=1}^T (f^{(t)}(x^{(t)}) - f^{(t)}(x)) \leq h(x) - h(x_1) + \sum_{t=1}^T (f^{(t)}(x^{(t)}) - f^{(t)}(x^{(t+1)}))
+    \end{equation}
+\end{lemma}\pause
+Furthermore, it is also shown that if for all $t$, if $f^{(t)}$ is $L^{(t)}$-Lipschitz with respect to $||\cdot||$, then we further have that 
+\begin{equation}\label{eqn:lemma_forel_lipschitz}
+    f^{(t)}(x^{(t)}) - f^{(t)}(x^{(t+1)}) \leq L_t ||x^{(t)} - x^{(t+1)}|| \leq \frac{L_t^2}{\sigma}
+\end{equation} \pause
+    Combining these 2 results, we obtain the expression of the regret bound.
+\end{frame}
+
+\begin{frame}{The Problem with FoReL}
+    \begin{itemize}
+        \item Update/Learning Rule: $$x^{(t)} = \arg \min_{x \in S} \left\{\sum_{i = 1}^{t-1} f^{(i)}(x) + h(x)\right\}\qquad\forall\,t$$ requires solving an optimisation problem at every iteration.
+        \item Can be computationally expensive and complex
+    \end{itemize}\pause
+    \begin{block}{Motivating Question}
+    Can we achieve a similar regret bound with a \textit{simpler} update rule?
+    \end{block}
+    \pause
+    Online Mirror Descent gives a much simpler update rule with similar regret bounds!
+\end{frame}
+\input{slides/1_OMD}
+\input{slides/2_duality_local_norms}
 \end{document}

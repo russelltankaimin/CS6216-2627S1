@@ -12,13 +12,33 @@ We first give the definition of the Fenchel conjugate of a convex function $f$:
         f^*(\theta) = \sup_{x \in \text{dom}(f)} \langle \theta, x \rangle -f(x)
     \end{equation}
 \end{define}
-Intuitively, we can think of the Fenchel conjugate of $f$ as an alternative representation of a function. Typically we can represent them as a tuple pair $(x, f(x))$. Now instead, we represent them as \textit{a set of tangents} (as opposed to points in space). These sets of tangents can be compactly represented as pairs of (slope, intersection-with-$y$-axis). Let the slope be denoted as $\theta$. The Fenchel conjugate $f^*$ is the function which takes in $\theta$ and outputs the \textbf{negative} $y$-intercept of the tanget line with the slope $\theta$, $f^*(\theta)$. We also note that to use this form of intuition, we assume for our purposes that $f$ is closed and convex. It is also the case that $f$ is closed and convex if and only if $f = (f^*)^*$ (i.e the dual of the dual problem is the primal problem). Furthermore, we have the following inequality that can be derived from the definition of the Fenchel conjugate of $f$:
+Intuitively, we can think of the Fenchel conjugate of $f$ as an alternative representation of a function. Typically we can represent them as a tuple pair $(x, f(x))$. Now instead, we represent them as \textit{a set of tangents} (as opposed to points in space). These sets of tangents can be compactly represented as pairs of (slope, intersection-with-$y$-axis). Let the slope be denoted as $\theta$. The Fenchel conjugate $f^*$ is the function which takes in $\theta$ and outputs the \textbf{negative} $y$-intercept of the tangent line with the slope $\theta$, $f^*(\theta)$. We also note that to use this form of intuition, we assume for our purposes that $f$ is closed and convex. It is also the case that $f$ is closed and convex if and only if $f = (f^*)^*$ (i.e the dual of the dual problem is the primal problem). Furthermore, we have the following inequality that can be derived from the definition of the Fenchel conjugate of $f$:
 \begin{define}[Fenchel-Young Inequality]
     \begin{equation}\label{eqn:fenchel_young_ineq}
         \forall x \in \text{dom}(f): \, f^*(\theta) \geq \langle \theta, x\rangle - f(x)
     \end{equation}
     Equality holds if $x \in \partial f^*$ at $\theta$. In particular, if $f$ is differentiable, then $x = \nabla f ^*(\theta)$.
 \end{define}
+
+\noindent \textbf{Remark:} We provide a table of Fenchel conjugate pairs for the reader's convenience. Note that for any vector $x \in \mathbb{R}^d$, $x[i]$ denotes the $i$-th element of the vector. In addition, for any set $S$, $I_S(x)$ is the indicator function that has value $0$ if $x \in S$ and $\infty$ otherwise.
+
+\begin{table}[h]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{ccl}
+\toprule
+$f(x)$ & $f^\star(\theta)$ & Comments \\
+\midrule
+$\frac{1}{2}\|x\|_2^2$ & $\frac{1}{2}\|\theta\|_2^2$ & \\
+$\frac{1}{2}\|x\|_q^2$ & $\frac{1}{2}\|\theta\|_p^2$ & where $\frac{1}{p} + \frac{1}{q} = 1$ \\
+$\sum_i x[i]\log(x[i]) + I_{\Delta_d}(x)$ & $\log\big(\sum_i e^{\theta[i]}\big)$ & (normalized Entropy) \\
+$\frac{1}{\eta} g(x)$ & $\frac{1}{\eta} g^\star(\eta\theta)$ & where $\eta > 0$ \\
+$g(x) + \langle x, x' \rangle$ & $g^\star(\theta - x')$ & \\
+\bottomrule
+\end{tabular}
+\caption{Some useful Fenchel conjugate pairs.}
+\label{tab:fenchel-pairs}
+\end{table}
 
 \subsubsection{Strong-smoothness}
 Recall Definition~\ref{defn:sigma_strong_convexity} on $\sigma$-strong convexity. A related property of strong-convexity is what we call \textit{strong-smoothness} and it is related to the Bregman divergence (see Definition~\ref{defn:bregmann_div}).
@@ -31,7 +51,7 @@ Recall Definition~\ref{defn:sigma_strong_convexity} on $\sigma$-strong convexity
 \begin{lemma}[Strong Convexity-Strong Smoothness Duality]\label{lem:strong_convexity_strong_smoothness_duality}
     Assume that $h$ is a closed and convex function. $h$ is $\sigma$-strongly convex with respect to the norm $||\cdot||$ if and only if the Fenchel conjugate $h^*$ is $\frac{1}{\sigma}$-strongly smooth with respect to the dual norm $||\cdot||_*$.
 \end{lemma}
-We will not prove this lemma here, as we are more interested in using the power of duality to tighten our existing regret bounds, but interested readers might want to refer to \cite{zualinescu2002convex} for the proof. We leave this lemma here as it implies that if $h$ is strongly-convex (which we assume it is), then its Frenchel conjugate $h^*$ is differentiable. 
+We will not prove this lemma here, as we are more interested in using the power of duality to tighten our existing regret bounds, but interested readers might want to refer to \cite{zualinescu2002convex} for the proof. We leave this lemma here as it implies that if $h$ is strongly-convex (which we assume it is), then its Frenchel conjugate $h^*$ is differentiable and also the duality relation between strong-convexity and strong-smoothness.
 
 Also, if we were to look at Equation~\ref{eqn:frenchel_conjugate}, it looks somewhat similar in expression to our definition of $g$. Suppose $x^*$ is the maximiser of $\langle \theta, x\rangle -h(x)$, therefore $g(\theta) = x^*$ by our definition of $g$. Furthermore, by our definition of Fenchel conjugatcy of $h$, we also have that $h^*(\theta) = \langle \theta, x^*\rangle -h(x^*)$. Taking the derivative of $h^*(\theta)$ with respect to $\theta$ yields $x^*$ which is simply $g(\theta)$. Hence, $\nabla h^*(\theta) = g(\theta)$. Hence
 \begin{equation}
@@ -40,49 +60,104 @@ Also, if we were to look at Equation~\ref{eqn:frenchel_conjugate}, it looks some
 
 \subsubsection{Regret Analysis using Duality}
 We first give the following lemma relating the regret bounds when OMD is run on a sequence of linear functions. The idea is the same as in the earlier sections that the regret bound for any sequence of convex functions can be upper bounded by that of suitable linear functions (we called it the linearisation trick, see \Cref{sss:forel_OMD_relation}).
-\begin{lemma}\label{lemma:duality_preliminary}
-    Suppose that OMD is run with $g = \nabla f^*$, then its regret is upper bounded by \begin{equation}
-        \sum_{t=1}^T\langle x_t - x, z_t \rangle \leq h(x) - h(x_1) + \sum_{t=1}^T D_{h^*}\left(-\sum_{i=1}^t z_i \left\vert \vphantom{\frac{a}{b}} \right\vert  -\sum_{i=1}^{t-1}z_i\right)   \end{equation}
-        where $z_t \in \partial f_t(x_t)$. Furthermore, equality holds if $x$ minimises $h(x) + \sum_{t} \langle u, z_t \rangle$
-\end{lemma}
+\begin{theorem}[Regret Bound of OMD using Duality]\label{lemma:duality_preliminary}
+    Suppose that OMD is run with $g = \nabla h^*$, then its regret is upper bounded by \begin{equation}
+        \sum_{t=1}^T\langle x^{(t)} - x, z^{(t)} \rangle \leq h(x) - h(x^{(1)}) + \sum_{t=1}^T D_{h^*}\left(-\sum_{i=1}^t z^{(i)} \left\vert \vphantom{\frac{a}{b}} \right\vert  -\sum_{i=1}^{t-1}z^{(i)}\right)   \end{equation}
+        where $z^{(t)} \in \partial f_t(x^{(t)})$. Furthermore, equality holds if $x$ minimises $h(x) + \sum_{t} \langle u, z^{(t)} \rangle$
+\end{theorem}
 \begin{proof}
-    We start off by having using the Frenchel-Young inequality. For a clearer notation, denote $z_{1:t} = \sum_{i=1}^t z_t$.
+    We start off by having using the Frenchel-Young inequality. For a clearer notation, denote $z^{(1:t)} = \sum_{i=1}^t z^{(t)}$.
     \begin{equation}\label{eqn:apply_frenchel_young}
-        h^*\left(-z_{1:T}\right) \geq \left\langle x, -z_{1:T}\right\rangle - h(x)
+        h^*\left(-z^{(1:T)}\right) \geq \left\langle x, -z^{(1:T)}\right\rangle - h(x)
     \end{equation}
-    We shift our focus on $h^*\left(-z_{1:T}\right)$. We first expand it using the telescoping series and apply the definition of the Bregman divergence as follows. 
+    We shift our focus on $h^*\left(-z^{(1:T)}\right)$. We first expand it using the telescoping series and apply the definition of the Bregman divergence as follows. 
     \begin{align*}
-        h^*(-z_{1:T})&= h^*(0) + \sum_{t=1}^T\left(h^*\left(-z_{1:t}\right)-h^*\left(-z_{1:t-1}\right)\right)\\
-        &=h^*(0) + \sum_{t=1}^T \Big (\underbrace{h^*\left(-z_{1:t}\right)-h^*\left(-z_{1:t-1}\right)- \langle \nabla h^*(-z_{1:t-1}), -z_{1:t}-(-z_{1:t-1}) \rangle}_{D_{h^*}(-z_{1:t}|| -z_{1:t-1})} \\
-        &\hspace{4cm}+ \langle \nabla h^*(-z_{1:t-1}), -z_{1:t}-(-z_{1:t-1}) \rangle\Big)\\
-        &= h^*(0) + \sum_{t=1}^T (D_{h^*}(-z_{1:t} || -z_{1:t-1}) + \langle \nabla h^*(-z_{1:t-1}), -z_t) \rangle)\\
-        &= h^*(0) + \sum_{t=1}^T (D_{h^*}(-z_{1:t} || -z_{1:t-1}) + \langle x_t, -z_t) \rangle) &\because x_t = \nabla h^*(-z_{1:t-1})
+        h^*(-z^{(1:T)})&= h^*(0) + \sum_{t=1}^T\left(h^*\left(-z^{(1:t)}\right)-h^*\left(-z^{(1:t-1)}\right)\right)\\
+        &=h^*(0) + \sum_{t=1}^T \Big (\underbrace{h^*\left(-z^{(1:t)}\right)-h^*\left(-z^{(1:t-1)}\right)- \langle \nabla h^*(-z^{(1:t-1)}), -z^{(1:t)}-(-z^{(1:t-1)}) \rangle}_{D_{h^*}(-z^{(1:t)}|| -z^{(1:t-1)})} \\
+        &\hspace{4cm}+ \langle \nabla h^*(-z^{(1:t-1)}), -z^{(1:t)}-(-z^{(1:t-1)}) \rangle\Big)\\
+        &= h^*(0) + \sum_{t=1}^T (D_{h^*}(-z^{(1:t)} || -z^{(1:t-1)}) + \langle \nabla h^*(-z^{(1:t-1)}), -z^{(t)}) \rangle)\\
+        &= h^*(0) + \sum_{t=1}^T (D_{h^*}(-z^{(1:t)} || -z^{(1:t-1)}) + \langle x^{(t)}, -z^{(t)}) \rangle) \hspace{3cm}\because x^{(t)} = \nabla h^*(-z^{(1:t-1)})
     \end{align*}
-    A gentle recap is that in OMD, we have that the next iterate is governed by $$x_t=g(\theta_t) = g(-z_{1:t-1})=\nabla h^*(-z_{1:t-1})$$
-    Now we combine the above with Equation~\ref{eqn:apply_frenchel_young} to get via the bridging expression $h^*(-z_{1:T})$ to get
+    A gentle recap is that in OMD, we have that the next iterate is governed by $$x^{(t)}=g(\theta_t) = g(-z^{(1:t-1)})=\nabla h^*(-z^{(1:t-1)})$$
+    Now we combine the above with Equation~\ref{eqn:apply_frenchel_young} via the bridging expression $h^*(-z^{(1:T)})$ to get
     \begin{align*}
-        &h^*(0) + \sum_{t=1}^T (D_{h^*}(-z_{1:t} || -z_{1:t-1}) + \langle x_t, -z_t) \rangle) \geq \left\langle x, -z_{1:T}\right\rangle - h(x)\\
-        \implies&h^*(0) + \sum_{t=1}^T (D_{h^*}(-z_{1:t} || -z_{1:t-1}) + \langle x_t, -z_t) \rangle) \geq \sum_{t=1}^T\left\langle x, -z_t\right\rangle - h(x)\\
-        \implies&\sum_{t=1}^T \langle x_t, z_t \rangle + \sum_{t=1}^T\langle x, -z_t\rangle \leq h(x)  + h^*(0) + \sum_{t=1}^T D_{h^*}(-z_{1:t}|| -z_{1:t-1}) &\text{By rearrangement}\\
-        \implies&\sum_{t=1}^T \langle x_t- x, z_t\rangle \leq h(x)  + h^*(0) + \sum_{t=1}^T D_{h^*}(-z_{1:t}|| -z_{1:t-1})
+        &h^*(0) + \sum_{t=1}^T (D_{h^*}(-z^{(1:t)} || -z^{(1:t-1)}) + \langle x^{(t)}, -z^{(t)}) \rangle) \geq \left\langle x, -z^{(1:T)}\right\rangle - h(x)\\
+        \implies&h^*(0) + \sum_{t=1}^T (D_{h^*}(-z^{(1:t)} || -z^{(1:t-1)}) + \langle x^{(t)}, -z^{(t)}) \rangle) \geq \sum_{t=1}^T\left\langle x, -z^{(t)}\right\rangle - h(x)\\
+        \implies&\sum_{t=1}^T \langle x^{(t)}, z^{(t)} \rangle + \sum_{t=1}^T\langle x, -z^{(t)}\rangle \leq h(x)  + h^*(0) + \sum_{t=1}^T D_{h^*}(-z^{(1:t)}|| -z^{(1:t-1)}) &\text{By rearrangement}\\
+        \implies&\sum_{t=1}^T \langle x^{(t)}- x, z^{(t)}\rangle \leq h(x)  + h^*(0) + \sum_{t=1}^T D_{h^*}(-z^{(1:t)}|| -z^{(1:t-1)})
     \end{align*}
-    To evaluate $h^*(0)$, we simply use the definition of Fenchel conjugate again and obtain $$h^*(0) = \sup_{x \in S} \langle 0, x \rangle - h(x) = \sup_{x \in S} -h(x) = -\inf_{x \in S} h(x) = h(x_1)$$ Note that $x_1$ is chosen because it is the first iteration and so there are no past gradients yet to sum. Hence $x_1 = \arg\max_{x \in S} -h(x)$. Substituting $h^*(0) = h(x_1)$ to our final arranged inequality yields the result of the lemma.
+    To evaluate $h^*(0)$, we simply use the definition of Fenchel conjugate again and obtain $$h^*(0) = \sup_{x \in S} \langle 0, x \rangle - h(x) = \sup_{x \in S} -h(x) = -\inf_{x \in S} h(x) = -h(x^{(1)})$$ Note that $x^{(1)}$ is chosen because it is the first iteration and so there are no past gradients yet to sum. Hence $x^{(1)} = \arg\max_{x \in S} -h(x)$. Substituting $h^*(0) = -h(x^{(1)})$ to our final arranged inequality yields the result of the lemma.
 \end{proof}
 Lemma~\ref{lemma:duality_preliminary} is interesting because if you compare the bound to that of the FoReL framework on linear functions, it looks similar except the rear stability term.
 \begin{align*}
-    \sum_{t=1}^T &\langle x_t- x, z_t\rangle \leq h(x)  -h(x_1) + \sum_{t=1}^T D_{h^*}(-z_{1:t}|| -z_{1:t-1}) &\text{(Duality)}\\
-    \sum_{t=1}^T &\langle x_t- x, z_t\rangle \leq h(x)  -h(x_1) + \sum_{t=1}^T \langle x_{t} - x_{t+1}, z_t\rangle &\text{(Linear Functions using FoReL)}
+    \sum_{t=1}^T &\langle x^{(t)}- x, z^{(t)}\rangle \leq h(x)  -h(x^{(1)}) + \sum_{t=1}^T D_{h^*}(-z^{(1:t)}|| -z^{(1:t-1)}) &\text{(Duality)}\\
+    \sum_{t=1}^T &\langle x^{(t)}- x, z^{(t)}\rangle \leq h(x)  -h(x^{(1)}) + \sum_{t=1}^T \langle x^{(t)} - x^{(t+1)}, z^{(t)}\rangle &\text{(Linear Functions using FoReL)}
 \end{align*}
-Now suppose we add the assumption that $h$ is $\frac{1}{\eta}$-strongly convex with respect to the norm $||\cdot||$ and suppose we run the OMD algorithm. Since $h$ is $\frac{1}{\eta}$-strongly convex with respect to the norm $||\cdot||$, then it follows by Lemma~\ref{lem:strong_convexity_strong_smoothness_duality} that $h^*$ is $\eta$-strongly smooth with respect to norm $||\cdot||_*$, and by definition, we have that $D(-z_{1:t}||-z_{1:t-1}) \leq \frac{\eta}{2}||-z_{1:t}-(-z_{1:t-1})||^2_* = \frac{\eta}{2}||z_t||_*^2$. It now follows that the more concrete bound with this newly added assumption is:
+Now suppose we add the assumption that $h$ is $\frac{1}{\eta}$-strongly convex with respect to the norm $||\cdot||$ and suppose we run the OMD algorithm. Since $h$ is $\frac{1}{\eta}$-strongly convex with respect to the norm $||\cdot||$, then it follows by Lemma~\ref{lem:strong_convexity_strong_smoothness_duality} that $h^*$ is $\eta$-strongly smooth with respect to norm $||\cdot||_*$, and by definition, we have that $D(-z^{(1:t)}||-z^{(1:t-1)}) \leq \frac{\eta}{2}||-z^{(1:t)}-(-z^{(1:t-1)})||^2_* = \frac{\eta}{2}||z^{(t)}||_*^2$. It now follows that the more concrete bound with this newly added assumption is:
 \begin{equation}
-    \boxed{\text{Regret}_T(x) \leq h(x) - h(x_1) + \frac{\eta}{2}\sum_{t=1}^T ||z_t||_*^2}
+    \boxed{\text{Regret}_T(x) \leq h(x) - h(x^{(1)}) + \frac{\eta}{2}\sum_{t=1}^T ||z^{(t)}||_*^2}
 \end{equation} 
-Let us examine some examples. Suppose $h(x) = \frac{1}{2\eta}||x||_2^2$ which is $\frac{1}{\eta}$-strongly convex with respect to the Euclidean norm. The Euclidean norm being self-dual yields the following regret bound.
+\begin{example} Suppose $h(x) = \frac{1}{2\eta}||x||_2^2$ which is $\frac{1}{\eta}$-strongly convex with respect to the Euclidean norm. The Euclidean norm being self-dual yields the following regret bound.
 \begin{align}
-    \text{Regret}_T(x) &\leq \frac{1}{2\eta}||x||_2^2 - \frac{1}{2\eta}||x_1||_2^2 + \frac{\eta}{2}\sum_{t=1}^T ||z_t||_2^2\\
-    &\leq \frac{1}{2\eta}||x||_2^2  + \frac{\eta}{2}\sum_{t=1}^T ||z_t||_2^2 &\because \frac{1}{2\eta}||x||_2^2 \geq 0
+    \text{Regret}_T(x) &\leq \frac{1}{2\eta}||x||_2^2 - \frac{1}{2\eta}||x^{(1)}||_2^2 + \frac{\eta}{2}\sum_{t=1}^T ||z^{(t)}||_2^2\\
+    &\leq \frac{1}{2\eta}||x||_2^2  + \frac{\eta}{2}\sum_{t=1}^T ||z^{(t)}||_2^2 &\because \frac{1}{2\eta}||x||_2^2 \geq 0
 \end{align}
-Suppose we let $L^2 = \frac{1}{T}\sum_{t=1}^T||z_t||_2^2$ and set $\eta = \frac{B}{L\sqrt{T}}$ (compare this with $\eta = \frac{B}{L\sqrt{2T}}$ from OMD with Lazy projections), then for all $||x||_2 \leq B$, we arrive at the bound of $\text{Regret}_T(x) \leq BL\sqrt{T}$, which itself is a factor of $\sqrt{2}$ improvement for the same algorithm but a different lens of analysis.
-
+Suppose we let $L^2 = \frac{1}{T}\sum_{t=1}^T||z^{(t)}||_2^2$ and set $\eta = \frac{B}{L\sqrt{T}}$ (compare this with $\eta = \frac{B}{L\sqrt{2T}}$ from OMD with Lazy projections), then for all $||x||_2 \leq B$, we arrive at the bound of $\text{Regret}_T(x) \leq BL\sqrt{T}$, which itself is a factor of $\sqrt{2}$ improvement for the same algorithm but a different lens of analysis.
+\end{example}
 \subsection{Regret Bounds with Local Norms}
-\russ{for Joseph: feel free to change the format or style}
+Recall that from Equation~\ref{eqn:neg_regret}, the normalised EG algorithm yields the following regret bound
+\begin{align*}
+\text{Regret}_T(\Delta_d) \leq \frac{\log d}{\eta} + \eta TL^2
+\end{align*}
+where $L_t$ is the Lipschitz bound for each $f_t$ with respect to $||\cdot||_1$, and $L$ is a value such that $\frac{1}{T}\sum_{t=1}^T L_t^2 \leq L^2$. However, quantities like $L_t$ and $L$ are often not known to us. The goal of this section is to derive a regret bound that can be computed using values that are observed while running the normalised EG algorithm. We first state define some notation that reduce notational burden:
+\begin{itemize}
+    \item For any positive integer $N$, $[N] = \{1, \dots, N\}$
+    \item For any vector $z \in \mathbb{R}^d$, for $i \in [d]$, $z_i$ denotes the scalar in the $i$-th row of $z$. 
+    \item Given vectors $z^{(1)}$, $z^{(2)}$, \dots, $z^{(t)}$, we define $z^{(1:t)} = \sum_{i=1}^t z^{(i)}$.
+\end{itemize}
+Given a series of iterates $x^{(1)}, x^{(2)}, \dots, x^{(t)} \in \Delta_d$, we can define the local norm $||z||_t$ for $z \in \mathbb{R}^d$ with respect to $x^{(1)}, x^{(2)}, \dots, x^{(t)}$ such that $||z||_t = \sqrt{\sum_{i=1}^d x^{(i)}_t (z^{(t)}_i)^2}$. One can verify that $||z||_t$ is indeed a norm. We now state the key theorem in this section.
+\begin{theorem}[Local Norm Regret Bound]\label{thm:EG_local_norm_regret_bound}
+    Assume that the normalized EG algorithm is run on a sequence of linear loss functions $f^{(t)}(x) = \langle x, z^{(t)} \rangle$ such that for all $t \in [T]$, $i \in [d]$, we have $\eta z^{(t)}_i \geq -1$. Then,
+    $$
+    \sum_{t=1}^T \langle x^{(t)} - x, z^{(t)} \rangle
+    \leq \frac{\log(d)}{\eta} + \eta \sum_{t=1}^T ||z^{(t)}||^2_t.
+    $$
+\end{theorem}
+\noindent Before delving into the proof of the theorem, note that the bound given by the result above can indeed be computed directly based on intermediate iterates that the normalised EG algorithm yields.  We will now give a proof of the result using elementary inequalities.\\
+\begin{proof}
+    We first observe that in the normalised EG algorithm, $h(x) = \frac{1}{\eta}\sum_{i=1}^d x_i \log x_i + I_{\Delta_d}(x)$. By referring to Table~\ref{tab:fenchel-pairs}, we have $h^*(\theta) = \log\big(\sum_i e^{\theta_i}\big).$ One can verify that $\nabla h^*$ (w.r.t to $\theta$) is equal to the same $g$ found in Section~\ref{subsubsec:normalised_eg}. This thus allows us to apply Lemma~\ref{lemma:duality_preliminary}, which yields 
+    $$
+    \sum_{t=1}^T\langle x^{(t)} - x, z^{(t)} \rangle \leq h(x) - h(x^{(1)}) + \sum_{t=1}^T D_{h^*}(-z^{(1:t)} || -z^{(1:t-1)}).
+    $$
+    Similar to the proof in Section~\ref{subsubsec:normalised_eg}, it is clear that for any vector $u$, 
+    $$ -\frac{\log(d)}{\eta} \leq h(u) \leq 0, $$
+    with equality holding at $u$ being a constant vector with value $1/d$ and $u$ being zero respectively. It thus suffices to show that 
+    $$ D_{h^*}(-z^{(1:t)} || -z^{(1:t-1)}) \leq \eta ||z||_t^2. $$
+    By applying the definition of $D_{h^*}$, we have
+    \begin{align*}
+        D_{h^*}(-z^{(1:t)} || -z^{(1:t-1)})
+        &= h^*(-z^{(1:t)}) - h^*(-z^{(1:t-1)}) + \langle x^{(t)}, z^{(t)} \rangle \\
+        &= \frac{1}{\eta} \log\left( \frac{\sum_{i}^d \exp{\left(-\eta z^{(1:t)}_i\right)}}{\sum_{i}^d \exp{\left(-\eta z^{(1:t-1)}_i\right)}} \right) + \langle x^{(t)}, z^{(t)} \rangle.
+    \end{align*}
+    We proceed to simplify the first term by observing that $-z^{(1:t)} = \theta^{(t+1)}$ (from Equation~\ref{eqn:theta_update_omd}). From Section~\ref{subsubsec:normalised_eg}, we further notice that 
+    \begin{align*}
+    \frac{\exp(\eta \theta^{(t+1)}_i)}{\sum_{j=1}^d \exp(\eta \theta^{(t+1)}_j)} = \frac{x^{(t)}_{i} \exp(-\eta z^{(t)}_{i})}{\sum_{j=1}^d x^{(t)}_{j} \exp(-\eta z^{(t)}_{j})} \quad \text{and} \quad x^{(t)}_{i} &= \frac{\exp(\eta \theta^{(t)}_i)}{\sum_{j=1}^d \exp(\eta \theta^{(t)}_i)}.
+    \end{align*}
+    Re-arranging the terms above yields
+    \begin{align*}
+        \frac{\sum_{i}^d \exp{\left(-\eta z^{(1:t)}_i\right)}}{\sum_{i}^d \exp{\left(-\eta z^{(1:t-1)}_i\right)}} &= \sum_{i=1}^d x^{(t)}_ie^{-\eta z^{(t)}_i}.
+    \end{align*}
+    This gives us a simplified representation of $D_{h^*}(-z^{(1:t)} || -z^{(1:t-1)})$ where 
+    \begin{align*}
+        D_{h^*}(-z^{(1:t)} || -z^{(1:t-1)})
+        &= \frac{1}{\eta} \log\left( \sum_{i=1}^d x^{(t)}_ie^{-\eta z^{(t)}_i} \right) + \langle x^{(t)}, z^{(t)} \rangle.
+    \end{align*}
+    By leveraging the inequality $e^{-a} \leq 1 - a + a^2$ (which is true whenever $a \geq -1$, and hence holds from our assumption), we have
+    \begin{align*}
+        D_{h^*}(-z^{(1:t)} || -z^{(1:t-1)}) \leq \frac{1}{\eta} \log\left( \sum_{i=1}^d x^{(t)}_i(1 - \eta z^{(t)}_i + \eta^2 (z^{(t)}_i)^2) \right) + \langle x^{(t)}, z^{(t)} \rangle.
+    \end{align*}
+    Finally, we apply the fact that $x^{(t)} \in \Delta_d$ and the inequality $\log(1 - a) \leq -a$ (which holds for all $a < 1$), we have
+    \begin{align*}
+        D_{h^*}(-z^{(1:t)} || -z^{(1:t-1)}) \leq \frac{1}{\eta} \sum_{i=1}^d x^{(t)}_i(- \eta z^{(t)}_i + \eta^2 (z^{(t)}_i)^2) + \langle x^{(t)}, z^{(t)} \rangle = \eta \sum_{i=1}^d x^{(t)}_i (z^{(t)}_i)^2 = \eta ||z||_t^2.
+    \end{align*}.
+\end{proof}
