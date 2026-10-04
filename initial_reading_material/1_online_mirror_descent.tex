@@ -73,7 +73,7 @@ Figure~\ref{fig:mirror_descent} gives an illustration of the steps described abo
 
 \subsection{Online Mirror Descent}
 We now focus on online mirror descent. Fundamentally speaking, both versions of mirror descent are similar in terms of the update rule but different in the following ways:\begin{enumerate}
-    \item \textbf{Objective Function} The objective function for online mirror descent changes at every step. At step $t$, the algorithm must commit to a prediction $x^{(t)}$ before the ``environment" reveals the specific loss function $f^{(t)}$ for that iteration.
+    \item \textbf{Objective Function} Instead of an objective function, we have loss functions instead. At step $t$, the algorithm must commit to a prediction $x^{(t)}$ before the ``environment" reveals the specific loss function $f^{(t)}$ for that iteration.
     \item \textbf{Gradient} In online mirror descent, we use the \textit{sub-gradient} of the newly revealed function $f^{(t)}$ for that iteration. We denote the sub-gradient as $z^{(t)} \in \partial f^{(t)}(x^{(t)})$. This implies that the update rule is now \begin{equation}
         \theta^{(t+1)}=  \theta^{(t)} - \eta \cdot z^{(t)}\qquad z^{(t)} \in \partial f^{(t)}(x^{(t)})
     \end{equation}
@@ -82,9 +82,10 @@ A sub-gradient of a function is a more generalised form of a gradient. More spec
     A value $z$ is a sub-gradient of $f$ at $x$ if for all $x' \in S$\begin{equation}
         f(x') \geq f(x) + \langle x' - x, z\rangle
     \end{equation}
-    The set of sub-gradients of $f$ at $x'$ is denoted by $\partial f(x')$. Furthermore, if $f$ is differentiable at $x'$, then $\partial f(x') = \{\nabla f(x')\}$ (i.e $\partial f(x^*)$ is a singleton and its only element is the gradient of $f$ at $x'$).
+    The set of sub-gradients of $f$ at $x'$ is denoted by $\partial f(x')$ and is called the subdifferential. Furthermore, if $f$ is differentiable at $x'$, then $\partial f(x') = \{\nabla f(x')\}$ (i.e $\partial f(x^*)$ is a singleton and its only element is the gradient of $f$ at $x'$).
 \end{define}
 
+\noindent We now state the full Online Mirror Descent (OMD) algorithm.
 \begin{center}
 \fbox{%
 \begin{minipage}{0.6\textwidth}
@@ -101,7 +102,7 @@ A sub-gradient of a function is a more generalised form of a gradient. More spec
 \end{minipage}%
 }
 \end{center}
-
+Notice the introduction of the link function $g$. The function $g$, which will be defined in the section below, summarises the inverse map by relating the mapped variable $\theta^{(t)}$ with the actual iterate $x^{(t)}$. In the later sections, we will see that many algorithms in the OMD framework are characterised by this link function $g$.
 
 \subsection{Generic Regret Bound for Online Mirror Descent (OMD) Algorithms}
 As you would have realised, the many different variants of online mirror descent algorithms are typically characterised by the geometries of the primal and dual space and, by relation, the mirror map $\nabla h$. That is to say, if $h$ changes (hence $\nabla h$ changes), then the update rule would look very different. 
@@ -153,6 +154,8 @@ We now state the theorem of the generic regret bound for Online Mirror Descent (
     \end{align*}
 \end{proof}
 
+\noindent \textbf{Remark}: From this point on, we will take $g$ to be defined as $g(\theta) = \text{argmax}_x \{ \langle \theta, x \rangle - h(x)\}$.
+
 \subsection{Variants of OMD algorithms}
 As mentioned before, the different variants of OMD algorithms can be characterised by the geometries of the primal and dual space and hence $g$. We will be introducing some of the variants in this subsection and their regret bounds.
 
@@ -189,7 +192,7 @@ Therefore, the algorithm is as follows:
 \raggedright
 \textbf{parameter:} $\eta > 0$ \\
 \textbf{initialize:} $x^{(1)} = (1/d, \dots, 1/d)$ \\
-\textbf{update rule:} $\forall i,\ x^{(t+1)}_i = \frac{x^{(t)}_i \exp({-\eta z^{(t)}_i})}{\sum_j x^{(t)}_j \exp({-\eta z^{(t)}_j})}$ where $z^{(t)} \in \partial f_t(x^{(t)})$
+\textbf{update rule:} $\forall i,\ x^{(t+1)}_i = \frac{x^{(t)}_i \exp({-\eta z^{(t)}_i})}{\sum_j x^{(t)}_j \exp({-\eta z^{(t)}_j})}$ where $z^{(t)} \in \partial f^{(t)}(x^{(t)})$
 \end{minipage}%
 }
 \end{center}
@@ -244,7 +247,7 @@ Readers might wonder why this algorithm is called ``Lazy projection". Compare th
 \end{theorem}
 The analysis step remains the same: we utilise Equation~\ref{eqn:forel_regre_with_min} again and try to simplify $\min_{v \in S} h(v)$. Note that since $h(x) =\frac{1}{2\eta}||x||_2^2 \geq 0$, the regret bound in Theorem~\ref{thm:regret_OGD_LP} is achieved.
 \subsubsection{$p$-norm Algorithm}
-The $p$-norm algorithm extends the OMD framework by substituting the Euclidean or entropic regulariser with a generalised $q$-norm regulariser. Here we let $S = \mathbb R^d$ and the parameter $p \geq 2$, alongside $q = \frac{p}{p-1}$ such that $\frac{1}{p} + \frac{1}{q} = 1$. The underlying regulariser is $h(x) = \frac{1}{2\eta(q-1)}||x||_q^2$ which is itself $\frac{1}{\eta}$-strongly convex over $\mathbb R^d$ with respect to the $\ell_q$ norm for any $q \in (1, 2]$. By using $h(x) = \frac{1}{2\eta (q-1)}||x||_q^2$, we arrive at a rather complicated expression of $g(\theta)$ which we will not prove here.
+The $p$-norm algorithm extends the OMD framework by substituting the Euclidean or entropic regulariser with a generalised $q$-norm regulariser. Here we let $S = \mathbb R^d$ and the parameter $p \geq 2$, alongside $q = \frac{p}{p-1}$ such that $\frac{1}{p} + \frac{1}{q} = 1$. The underlying regulariser is $h(x) = \frac{1}{2\eta(q-1)}||x||_q^2$ which is itself $\frac{1}{\eta}$-strongly convex over $\mathbb R^d$ with respect to the $\ell_q$ norm for any $q \in (1, 2]$. By using $h(x) = \frac{1}{2\eta (q-1)}||x||_q^2$, we arrive at a rather complicated expression of $g(\theta)$ which we will not derive now as it requires a later topic on Fenchel conjugacy (which is the easier route).
 \begin{equation}\label{eqn:p_norm_g}
     g_i(\theta) = \eta \frac{\text{sgn}(\theta_i)  |\theta_i|^{p-1}}{||\theta||_p^{p-2}}
 \end{equation} where $p \geq 2$ and $||\theta||_p := \left(\sum_{i=1}^d |\theta_i|^p\right)^{1/p}$. We will also not restate the algorithm as the only thing that has changed is the direct replacement of the update rule with Equation~\ref{eqn:p_norm_g}. 
@@ -269,9 +272,10 @@ Let us now take the right-limit of $q \to 1^+$:
 \begin{align*}
     \lim_{q \to 1^+} h_1(x) &= \lim_{q \to 1^+} \frac{||x||_q^2 - 1}{2\eta(q-1)}\\
     &= \lim_{q \to 1^+}\frac{\frac{\partial}{\partial q}[(\sum_{i=1}^d x_i)^{2/q}-1]}{\frac{\partial}{\partial q}(2 \eta (q-1))} &\because \text{L'Hopital's Rule}\\
-    &= \lim_{q \to 1^+}\frac{||x||_q^2 \cdot \left(-\frac{2}{q^2}\log(\sum_{i=1}^d|x_i|^q) + \frac{2}{q}\cdot \frac{\sum_{i=1}^d|x_i|^q\log|x_i|}{\sum_{i=1}^d |x_i|^q}\right)}{2\eta} \\
+    &= \lim_{q \to 1^+}\frac{||x||_q^2 \cdot \left(-\frac{2}{q^2}\log(\sum_{i=1}^d|x_i|^q) + \frac{2}{q}\cdot \frac{\sum_{i=1}^d|x_i|^q\log|x_i|}{\sum_{i=1}^d |x_i|^q}\right)}{2\eta}\\
     &= \frac{||x||_1^2(-2 \log(\sum_{i=1}^d |x_i|)+ 2 \frac{\sum_{i=1}^d |x_i|\log|x_i|}{\sum_{i=1}^d |x_i|})}{2\eta}
 \end{align*}
+There are many ways to work out the third line of working. The easiest way to to do logarithmic differentiation.
 By now you might have seen some familiar expressions. Now suppose we further constraint $S = \Delta_d$, then $\sum_{i=1}^d |x_i| =1$ and $||x||_1^2 = 1$ yields the final expression:
 \begin{equation}
     \lim_{q \to 1^+} h_1(x) = \frac{-2 \log 1 + 2 \sum_{i=1}^d x_i \log x_i}{2 \eta} = \frac{1}{\eta} \sum_{i=1}^d x_i \log x_i

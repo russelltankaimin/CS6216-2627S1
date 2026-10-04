@@ -1,4 +1,4 @@
-\section{Online Mirror Descent}
+\section{Online Mirror Descent (OMD) Framework and Algorithms}
 \begin{frame}{What is Classical Mirror Descent}
 \begin{itemize}
     \item Consider the standard gradient descent update rule: $$x^{(t+1)} = x^{(t)} - \eta \nabla f(x^{(t)})$$\pause
@@ -32,7 +32,7 @@ We therefore need a way to ``map" from the primal space $\mathcal{X}$ to the dua
             \begin{figure}
                 \centering
                 \includegraphics[width=\linewidth]{slides//figures/bregmandiv.png}
-                \caption{Enter Caption}
+                \caption{Bregman Divergence}
                 \label{fig:placeholder}
             \end{figure}
         \end{column}
@@ -131,6 +131,26 @@ Notice for Mirror Descent, we do the gradient step in the dual space instead of 
 Furthermore, if $f$ is differentiable at $x'$, then $\partial f(x') = \{\nabla f(x')\}$ (i.e $\partial f(x^*)$ is a singleton and its only element is the gradient of $f$ at $x'$).
 \end{frame}
 
+\begin{frame}{Online Mirror Descent}
+    \small
+    \begin{center}
+    \fbox{%
+    \begin{minipage}{0.99\textwidth}
+    \centering
+    \texttt{Online Mirror Descent}
+    \vspace{1em}
+    
+    \raggedright
+    \textbf{parameter:} a link function $g : \mathbb{R}^d \to S$ \\
+    \textbf{initialize:} $\theta^{(1)} = 0$ \\
+    \textbf{for} $t = 1, 2, \ldots$ \\
+    \quad predict $x^{(t)} = g(\theta^{(t)})$ \\
+    \quad update $\theta^{(t+1)} = \theta^{(t)} - z^{(t)} $for $z^{(t)} \in \partial f^{(t)}(x^{(t)})$
+    \end{minipage}%
+    }
+    \end{center}
+\end{frame}
+
 \begin{frame}{A Generic Regret Bound}
 \begin{block}{Generic Regret Bound for OMD Algorithms}
 Suppose we select a $\frac{1}{\eta}$-strongly convex regulariser $h$ and let $f_t$ be linear functions that are $L_t$-Lipschitz. Then we have the following generic regret bound
@@ -144,7 +164,7 @@ The old framework FoReL can help us achieve that bound!
 \begin{frame}{Linearisation Trick - FoReL and OMD}
     Recall the mirror descent step:
     \begin{align}
-        x^{(t+1)} \gets (\nabla h)^{-1}(\theta^{(t+1)}) := \mathbf g(\theta^{(t+1)})
+        x^{(t+1)} \gets (\nabla h)^{-1}(\theta^{(t+1)}) :=  \boldsymbol{g(\theta^{(t+1)})}
     \end{align}
     We can re-write $g(\theta^{(t+1)}) = \arg\max_{x \in S} \{\langle \theta^{(t+1)}, x\rangle - h(x)\}$ 
     
@@ -160,7 +180,7 @@ The old framework FoReL can help us achieve that bound!
     Suppose we apply FoReL on a sequence of linear functions $f^{(t)}(x) = \langle x, z^{(t)} \rangle$ with some regulariser $h(x)$. \pause
     \begin{align*}
     x^{(t+1)} &= \arg\min_{x \in S} \left\{\sum_{i=1}^t f^{(i)}(x) + h(x) \right\} \\
-    &= \arg\min_{x \in S} \left\{\sum_{i=1}^t \langle x, z^{(t)} \rangle  + h(x)\right\} \\
+    &= \arg\min_{x \in S} \left\{\sum_{i=1}^t \langle x, z^{(i)} \rangle  + h(x)\right\} \\
     &= \arg\max_{x \in S} \left\{\left\langle x, \underbrace{-\sum_{i=1}^t z^{(i)}}_{\theta^{(t+1)}} \right\rangle - h(x)\right\}
 \end{align*}\pause
 We get $g(\theta^{(t+1)})$ from OMD alongside $\theta^{(t+1)} \gets\theta^{(t)} - z^{(t)}.$
@@ -194,7 +214,7 @@ We get $g(\theta^{(t+1)})$ from OMD alongside $\theta^{(t+1)} \gets\theta^{(t)} 
     
     \begin{itemize}
         \item By Equation~\ref{eqn:lemma_forel_lipschitz}, $\sum_{t=1}^T (f^{(t)}(x^{(t)}) - f^{(t)}(x^{(t+1)})) \leq \sum_{t=1}^T \frac{L_t^2}{\sigma}$
-        \item Sub $\sigma= \frac{1}{\eta}$ and substitute $f^{(t)}$ as linear functions instead. Since $f^{(t)}(x) = \langle \theta^{(t)}, x\rangle \implies L_t = ||z_t||_*$
+        \item Sub $\sigma= \frac{1}{\eta}$ and substitute $f^{(t)}$ as linear functions instead. Since $f^{(t)}(x) = \langle z^{(t)}, x\rangle \implies L_t = ||z^{(t)}||_*$
         \item Last step: $\min_{v \in S} h(v) \leq h(x^{(1)})$ yields the final regret bound.
     \end{itemize}
 \end{frame}
@@ -220,14 +240,15 @@ Recall that we derived $g$ relating $\theta^{(t+1)}$ with $x^{(t+1)}$ \pause
 \begin{equation*}
     x^{(t+1)} = g(\theta^{(t+1)}) = \arg\max_{x \in \Delta_d} \left\{\sum_{i=1}^d \theta_i^{(t+1)}x_i - \frac{1}{\eta}\sum_{i=1}^d x_i \log x_i\right\}
 \end{equation*} which is solvable by Lagrange multipliers (see notes) and it yields the following:
-\begin{equation}
-    x_i^{(t+1)} = \frac{\exp(\eta \theta_i^{(t+1)})}{\sum_{j=1}^d \exp(\eta \theta_j^{(t+1)})} \hspace{3cm}\text{(Softmax)}
-\end{equation}    
+\begin{align*}
+    x_i^{(t+1)} &= \frac{\exp(\eta \theta_i^{(t+1)})}{\sum_{j=1}^d \exp(\eta \theta_j^{(t+1)})} \hspace{3cm}\text{(Softmax)}\\
+    &=\frac{x_i^{(t)} \exp(-\eta z_i^{(t)})}{\sum_{j=1}^d x_j^{(t)} \exp(-\eta z_j^{(t)})}
+\end{align*}    
 \end{frame}
 
 \begin{frame}{Normalised EG Algorithm}
     \begin{enumerate}
-    \item Set $w_1 = (1/d, 1/d, \ldots, 1/d)$
+    \item Set $x^{(1)} = (1/d, 1/d, \ldots, 1/d)$
     \item For all $i$: $x_i^{(t+1)} =\frac{x_i^{(t)} \exp(-\eta z_i^{(t)})}{\sum_{j=1}^d x_j^{(t)} \exp(-\eta z_j^{(t)})} $ where $z^{(t)} \in \partial f^{(t)}(x^{(t)})$
 \end{enumerate}
 \pause
@@ -265,7 +286,7 @@ In particular, if $\eta = \frac{\sqrt{\log d}}{L \sqrt{2T}}$, then we have $$\te
     \begin{itemize}
     \item $h(x) = \frac{1}{2\eta}||x||_2^2$ (Euclidean Regulariser)
     \item Norm: $||\cdot||_2$
-    \item $S = \Delta_d$
+    \item $S = \mathbb R^d$ + possibly some constraints
 \end{itemize}\pause
 Again, using the definition of $g$, we derive some update rule:\pause
 \begin{align*}

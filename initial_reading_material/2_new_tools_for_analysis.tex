@@ -3,24 +3,73 @@ We now shift away from using the FoReL framework to study the regret bounds of v
 
 \subsection{Analysing OMD using Duality}
 
-Before delving into the duality tools we could use, it would be appropriate to have a primer in basic concepts like Fenchel conjugacy, Fenchel-Young inequality, etc.
+Before delving into the duality tools we could use, it would be appropriate to have a primer in basic concepts like the geometric characterisation of convex functions, Fenchel conjugacy, Fenchel-Young inequality, etc.
+
+\subsubsection{A Geometric Characterisation of Convex Functions}
+When dealing with convex functions, a typical definition of convex functions is given as follows:
+\begin{define}[Jensen Inequality's Definition of Convex Functions]
+    A function $f: \mathbb{R}^d \to \mathbb{R} \cup \{\infty\} $ is convex if and only if for all $x, y \in \text{dom}(f) = \{x \in \mathbb{R}^d \ | \ f(x) < \infty\}$ and $\lambda \in (0, 1)$, the following holds
+    $$
+    f(\lambda x + (1 - \lambda)y) \leq \lambda f(x) + (1 - \lambda) f(y).
+    $$
+\end{define}
+\noindent While this definition is very powerful, it is not obvious how one can relate this to a geometric characterisation of convex functions. Instead, an equivalent definition of convex functions is as follows:
+\begin{lemma}[Epigraph Definition of Convex Functions]
+    A function $f: \mathbb{R}^d \to \mathbb{R} \cup \{\infty\} $ is convex if and only if $\text{epi}(f)$ is a convex set, where the epigraph of $f$ is $\text{epi}(f) = \{ (x, t) \in \mathbb{R}^n \times \mathbb{R}: t \geq f(x) \}$.
+\end{lemma}
+\begin{proof}
+The proof of this result is rather straightforward and is left as an exercise.    
+\end{proof}
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[b]{0.32\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{initial_reading_material/figures/approx_3.png}
+    \caption{Approx. with 3 tangent lines.}
+    \label{fig:sub1}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.32\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{initial_reading_material/figures/approx_5.png}
+    \caption{Approx. with 5 tangent lines.}
+    \label{fig:sub2}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.32\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{initial_reading_material/figures/approx_10.png}
+    \caption{Approx. with 10 tangent lines.}
+    \label{fig:sub3}
+  \end{subfigure}
+  \caption{The figures above show the approximation of $\text{epi}(f)$ by the intersections of the half-spaces containing the epigraph of $f$. The orange sections represent the excess from the approximation and the light blue section represents the epigraph of $f$. We can see that the orange sections vanish rather rapidly.}
+  \label{fig:conv_approx}
+\end{figure}
+\noindent This epigraph definition of convex functions is advantageous as it is known that a closed convex set can be represented as the intersection of all half-spaces that contain it (we refer the reader to \cite[Prop.~1.5.4]{bertsekas2009convex} for a rigorous treatment of this result). In our use case, a half-space can be thought of as the epigraph associated with each tangent line.
+We provide a visual illustration (Figure~\ref{fig:conv_approx}) to motivate the equivalence between the set of all tangent planes/lines of a convex function and the convex function itself. From Figure~\ref{fig:conv_approx}, we can see that the epigraph of $f$ can indeed be approximated and perfectly characterised at the limit by the tangent lines of $f$.
 
 \subsubsection{A Primer on Fenchel Conjugacy}
-We first give the definition of the Fenchel conjugate of a convex function $f$:
+Using the epigraph characterisation of convex functions, we will now motivate the definition of the Fenchel conjugate. We begin by considering the following observation: the graph of a convex function $f$ is never below any of its tangent lines. Suppose we characterise each tangent line by its slope $\theta$ and intercept $-b$. In the $\mathbb{R}^2$ case, for a particular slope $\theta$, it is clear that for the graph of $f$ to never be below its tangent lines, we must have, for all $x \in \text{dom}(f)$
+$$
+f(x) \geq \theta x - b \ \Leftrightarrow b \geq \theta x - f(x).
+$$
+By noting that the point of tangency occurs at equality, that implies that at the point of tangency, we have
+$$ b = \sup_{x \in \text{dom}(f)} \theta x - f(x). $$
+By generalising this to $\mathbb{R}^d$ and writing $b = f^*(\theta)$, the definition of the Fenchel conjugate of a convex function $f$ is given as:
 \begin{define}[Fenchel Conjugate of a Convex Function $f$]
     The Fenchel conjugate of the convex function $f$, denoted as $f^*$ is defined to be\begin{equation}\label{eqn:frenchel_conjugate}
         f^*(\theta) = \sup_{x \in \text{dom}(f)} \langle \theta, x \rangle -f(x)
     \end{equation}
 \end{define}
-Intuitively, we can think of the Fenchel conjugate of $f$ as an alternative representation of a function. Typically we can represent them as a tuple pair $(x, f(x))$. Now instead, we represent them as \textit{a set of tangents} (as opposed to points in space). These sets of tangents can be compactly represented as pairs of (slope, intersection-with-$y$-axis). Let the slope be denoted as $\theta$. The Fenchel conjugate $f^*$ is the function which takes in $\theta$ and outputs the \textbf{negative} $y$-intercept of the tangent line with the slope $\theta$, $f^*(\theta)$. We also note that to use this form of intuition, we assume for our purposes that $f$ is closed and convex. It is also the case that $f$ is closed and convex if and only if $f = (f^*)^*$ (i.e the dual of the dual problem is the primal problem). Furthermore, we have the following inequality that can be derived from the definition of the Fenchel conjugate of $f$:
+\noindent From the motivation above, the Fenchel conjugate $f^*$ is the function which takes in $\theta$ and outputs the \textbf{negative} $y$-intercept of the tangent line with the slope $\theta$, $f^*(\theta)$. We also note that to use this form of intuition, we assume for our purposes that $f$ is closed and convex (we refer the reader to [\cite{bertsekas2009convex}, Definition 1.1.2] for the formal definition of closed). It is also the case that if $f$ is closed, proper and convex, then $f = (f^*)^*$ (i.e the conjugate of the conjugate is itself, proof given in [\cite{bertsekas2009convex}, Prop 1.6.1]). Furthermore, we have the following inequality that can be derived from the definition of the Fenchel conjugate of $f$:
 \begin{define}[Fenchel-Young Inequality]
     \begin{equation}\label{eqn:fenchel_young_ineq}
         \forall x \in \text{dom}(f): \, f^*(\theta) \geq \langle \theta, x\rangle - f(x)
     \end{equation}
-    Equality holds if $x \in \partial f^*$ at $\theta$. In particular, if $f$ is differentiable, then $x = \nabla f ^*(\theta)$.
+    Equality holds if $x \in \partial f^*(\theta)$. In particular, if $f$ is differentiable, then $x = \nabla f ^*(\theta)$. (See [\cite{bertsekas2009convex}, Prop 5.4.3] for the proof of the equality case.)
 \end{define}
 
-\noindent \textbf{Remark:} We provide a table of Fenchel conjugate pairs for the reader's convenience. Note that for any vector $x \in \mathbb{R}^d$, $x[i]$ denotes the $i$-th element of the vector. In addition, for any set $S$, $I_S(x)$ is the indicator function that has value $0$ if $x \in S$ and $\infty$ otherwise.
+\noindent \textbf{Remark:} We provide a table of Fenchel conjugate pairs for the reader's convenience. Note that for any vector $x \in \mathbb{R}^d$, $x_i$ denotes the $i$-th element of the vector. In addition, for any set $S$, $I_S(x)$ is the indicator function that has value $0$ if $x \in S$ and $\infty$ otherwise.
 
 \begin{table}[h]
 \centering
@@ -31,9 +80,7 @@ $f(x)$ & $f^\star(\theta)$ & Comments \\
 \midrule
 $\frac{1}{2}\|x\|_2^2$ & $\frac{1}{2}\|\theta\|_2^2$ & \\
 $\frac{1}{2}\|x\|_q^2$ & $\frac{1}{2}\|\theta\|_p^2$ & where $\frac{1}{p} + \frac{1}{q} = 1$ \\
-$\sum_i x[i]\log(x[i]) + I_{\Delta_d}(x)$ & $\log\big(\sum_i e^{\theta[i]}\big)$ & (normalized Entropy) \\
-$\frac{1}{\eta} g(x)$ & $\frac{1}{\eta} g^\star(\eta\theta)$ & where $\eta > 0$ \\
-$g(x) + \langle x, x' \rangle$ & $g^\star(\theta - x')$ & \\
+$\sum_i x_i\log(x_i) + I_{\Delta_d}(x)$ & $\log\left(\sum_i e^{\theta_i}\right)$ & (normalized Entropy) \\
 \bottomrule
 \end{tabular}
 \caption{Some useful Fenchel conjugate pairs.}
@@ -47,23 +94,25 @@ Recall Definition~\ref{defn:sigma_strong_convexity} on $\sigma$-strong convexity
     \begin{equation}
         D_h(x||x') \leq \frac{\sigma}{2}||x - x'||^2
     \end{equation}
-\end{define} One can think of strong-smoothness as the \textit{dual property} of strong-convexity. Hence, we also give a lemma which links strong-smoothness and strong-convexity concretely.
+\end{define}
+\noindent One can think of strong-smoothness as the \textit{dual property} of strong-convexity. Hence, we also give a lemma which links strong-smoothness and strong-convexity concretely.
 \begin{lemma}[Strong Convexity-Strong Smoothness Duality]\label{lem:strong_convexity_strong_smoothness_duality}
-    Assume that $h$ is a closed and convex function. $h$ is $\sigma$-strongly convex with respect to the norm $||\cdot||$ if and only if the Fenchel conjugate $h^*$ is $\frac{1}{\sigma}$-strongly smooth with respect to the dual norm $||\cdot||_*$.
+    Assume that $h$ is a closed and convex function. $h$ is $\sigma$-strongly convex with respect to the norm $||\cdot||$ if and only if the Fenchel conjugate $h^*$ is $\frac{1}{\sigma}$-strongly smooth with respect to the dual norm $||\cdot||_*$, where the dual norm is defined as $||x||_* = \max\{ \langle v, x \rangle \  : \ ||v|| \leq 1 \} $.
 \end{lemma}
-We will not prove this lemma here, as we are more interested in using the power of duality to tighten our existing regret bounds, but interested readers might want to refer to \cite{zualinescu2002convex} for the proof. We leave this lemma here as it implies that if $h$ is strongly-convex (which we assume it is), then its Frenchel conjugate $h^*$ is differentiable and also the duality relation between strong-convexity and strong-smoothness.
+\noindent We will not prove this lemma here, as we are more interested in using the power of duality to tighten our existing regret bounds, but interested readers might want to refer to [\cite{zualinescu2002convex}, Corollary 3.5.11] for the proof. We leave this lemma here as it implies that if $h$ is strongly-convex (which we assume it is), then its Frenchel conjugate $h^*$ is differentiable and also the duality relation between strong-convexity and strong-smoothness.
 
-Also, if we were to look at Equation~\ref{eqn:frenchel_conjugate}, it looks somewhat similar in expression to our definition of $g$. Suppose $x^*$ is the maximiser of $\langle \theta, x\rangle -h(x)$, therefore $g(\theta) = x^*$ by our definition of $g$. Furthermore, by our definition of Fenchel conjugatcy of $h$, we also have that $h^*(\theta) = \langle \theta, x^*\rangle -h(x^*)$. Taking the derivative of $h^*(\theta)$ with respect to $\theta$ yields $x^*$ which is simply $g(\theta)$. Hence, $\nabla h^*(\theta) = g(\theta)$. Hence
+Also, if we were to look at Equation~\ref{eqn:frenchel_conjugate}, it looks somewhat similar in expression to our definition of $g$. Suppose $x^*$ is the maximiser of $\langle \theta, x\rangle -h(x)$, therefore $g(\theta) = x^*$ by our definition of $g$. Furthermore, by our definition of Fenchel conjugacy of $h$, we also have that $h^*(\theta) = \langle \theta, x^*\rangle -h(x^*)$. Taking the derivative of $h^*(\theta)$ with respect to $\theta$ yields $x^*$ which is simply $g(\theta)$. Hence, $\nabla h^*(\theta) = g(\theta)$. Hence
 \begin{equation}
-    g(\theta) = \nabla h^*(\theta) = \arg\max_{x \in S} \{\langle \theta, x\rangle - h(x)\}
+    g(\theta) = \nabla h^*(\theta) = \arg\max_{x \in S} \{\langle \theta, x\rangle - h(x)\}.
 \end{equation}
+In the proof of the regret bound below, one can observe specifically the simplification that the condition $g = \nabla h^*$ yields.
 
 \subsubsection{Regret Analysis using Duality}
 We first give the following lemma relating the regret bounds when OMD is run on a sequence of linear functions. The idea is the same as in the earlier sections that the regret bound for any sequence of convex functions can be upper bounded by that of suitable linear functions (we called it the linearisation trick, see \Cref{sss:forel_OMD_relation}).
 \begin{theorem}[Regret Bound of OMD using Duality]\label{lemma:duality_preliminary}
     Suppose that OMD is run with $g = \nabla h^*$, then its regret is upper bounded by \begin{equation}
         \sum_{t=1}^T\langle x^{(t)} - x, z^{(t)} \rangle \leq h(x) - h(x^{(1)}) + \sum_{t=1}^T D_{h^*}\left(-\sum_{i=1}^t z^{(i)} \left\vert \vphantom{\frac{a}{b}} \right\vert  -\sum_{i=1}^{t-1}z^{(i)}\right)   \end{equation}
-        where $z^{(t)} \in \partial f_t(x^{(t)})$. Furthermore, equality holds if $x$ minimises $h(x) + \sum_{t} \langle u, z^{(t)} \rangle$
+        where $z^{(t)} \in \partial f^{(t)}(x^{(t)})$. Furthermore, equality holds if $x$ minimises $h(x) + \sum_{t} \langle x, z^{(t)} \rangle$
 \end{theorem}
 \begin{proof}
     We start off by having using the Frenchel-Young inequality. For a clearer notation, denote $z^{(1:t)} = \sum_{i=1}^t z^{(t)}$.
@@ -76,19 +125,19 @@ We first give the following lemma relating the regret bounds when OMD is run on 
         &=h^*(0) + \sum_{t=1}^T \Big (\underbrace{h^*\left(-z^{(1:t)}\right)-h^*\left(-z^{(1:t-1)}\right)- \langle \nabla h^*(-z^{(1:t-1)}), -z^{(1:t)}-(-z^{(1:t-1)}) \rangle}_{D_{h^*}(-z^{(1:t)}|| -z^{(1:t-1)})} \\
         &\hspace{4cm}+ \langle \nabla h^*(-z^{(1:t-1)}), -z^{(1:t)}-(-z^{(1:t-1)}) \rangle\Big)\\
         &= h^*(0) + \sum_{t=1}^T (D_{h^*}(-z^{(1:t)} || -z^{(1:t-1)}) + \langle \nabla h^*(-z^{(1:t-1)}), -z^{(t)}) \rangle)\\
-        &= h^*(0) + \sum_{t=1}^T (D_{h^*}(-z^{(1:t)} || -z^{(1:t-1)}) + \langle x^{(t)}, -z^{(t)}) \rangle) \hspace{3cm}\because x^{(t)} = \nabla h^*(-z^{(1:t-1)})
+        &= h^*(0) + \sum_{t=1}^T (D_{h^*}(-z^{(1:t)} || -z^{(1:t-1)}) + \langle x^{(t)}, -z^{(t)}) \rangle) \hspace{1cm}\because x^{(t)} = g(-z^{(1:t-1)}) = \nabla h^*(-z^{(1:t-1)})
     \end{align*}
-    A gentle recap is that in OMD, we have that the next iterate is governed by $$x^{(t)}=g(\theta_t) = g(-z^{(1:t-1)})=\nabla h^*(-z^{(1:t-1)})$$
+    A gentle recap is that in OMD, we have that the next iterate is governed by $$x^{(t)}=g(\theta_t) = g(-z^{(1:t-1)})=\nabla h^*(-z^{(1:t-1)}).$$
     Now we combine the above with Equation~\ref{eqn:apply_frenchel_young} via the bridging expression $h^*(-z^{(1:T)})$ to get
     \begin{align*}
         &h^*(0) + \sum_{t=1}^T (D_{h^*}(-z^{(1:t)} || -z^{(1:t-1)}) + \langle x^{(t)}, -z^{(t)}) \rangle) \geq \left\langle x, -z^{(1:T)}\right\rangle - h(x)\\
         \implies&h^*(0) + \sum_{t=1}^T (D_{h^*}(-z^{(1:t)} || -z^{(1:t-1)}) + \langle x^{(t)}, -z^{(t)}) \rangle) \geq \sum_{t=1}^T\left\langle x, -z^{(t)}\right\rangle - h(x)\\
-        \implies&\sum_{t=1}^T \langle x^{(t)}, z^{(t)} \rangle + \sum_{t=1}^T\langle x, -z^{(t)}\rangle \leq h(x)  + h^*(0) + \sum_{t=1}^T D_{h^*}(-z^{(1:t)}|| -z^{(1:t-1)}) &\text{By rearrangement}\\
+        \implies&\sum_{t=1}^T \langle x^{(t)}, z^{(t)} \rangle + \sum_{t=1}^T\langle x, -z^{(t)}\rangle \leq h(x)  + h^*(0) + \sum_{t=1}^T D_{h^*}(-z^{(1:t)}|| -z^{(1:t-1)}) &\text{(By rearrangement)}\\
         \implies&\sum_{t=1}^T \langle x^{(t)}- x, z^{(t)}\rangle \leq h(x)  + h^*(0) + \sum_{t=1}^T D_{h^*}(-z^{(1:t)}|| -z^{(1:t-1)})
     \end{align*}
     To evaluate $h^*(0)$, we simply use the definition of Fenchel conjugate again and obtain $$h^*(0) = \sup_{x \in S} \langle 0, x \rangle - h(x) = \sup_{x \in S} -h(x) = -\inf_{x \in S} h(x) = -h(x^{(1)})$$ Note that $x^{(1)}$ is chosen because it is the first iteration and so there are no past gradients yet to sum. Hence $x^{(1)} = \arg\max_{x \in S} -h(x)$. Substituting $h^*(0) = -h(x^{(1)})$ to our final arranged inequality yields the result of the lemma.
 \end{proof}
-Lemma~\ref{lemma:duality_preliminary} is interesting because if you compare the bound to that of the FoReL framework on linear functions, it looks similar except the rear stability term.
+Lemma~\ref{lemma:duality_preliminary} is interesting because if you compare the bound to that of the FoReL framework on linear functions, it looks similar except the rear stability term. The rear term derived using duality can be interpreted as being more specific to the problem setting as it depends on the choice of $h$, whereas the one in ``Linear Functions using FoReL'' has a rear term that is independent of $h$. This suggests that the bound derived via duality could lead to more refined bounds as it is more specific to the problem setting.
 \begin{align*}
     \sum_{t=1}^T &\langle x^{(t)}- x, z^{(t)}\rangle \leq h(x)  -h(x^{(1)}) + \sum_{t=1}^T D_{h^*}(-z^{(1:t)}|| -z^{(1:t-1)}) &\text{(Duality)}\\
     \sum_{t=1}^T &\langle x^{(t)}- x, z^{(t)}\rangle \leq h(x)  -h(x^{(1)}) + \sum_{t=1}^T \langle x^{(t)} - x^{(t+1)}, z^{(t)}\rangle &\text{(Linear Functions using FoReL)}
@@ -97,12 +146,14 @@ Now suppose we add the assumption that $h$ is $\frac{1}{\eta}$-strongly convex w
 \begin{equation}
     \boxed{\text{Regret}_T(x) \leq h(x) - h(x^{(1)}) + \frac{\eta}{2}\sum_{t=1}^T ||z^{(t)}||_*^2}
 \end{equation} 
-\begin{example} Suppose $h(x) = \frac{1}{2\eta}||x||_2^2$ which is $\frac{1}{\eta}$-strongly convex with respect to the Euclidean norm. The Euclidean norm being self-dual yields the following regret bound.
+
+\begin{example}{(Unconstrained Online Gradient Descent)}\label{example1}
+We consider the Online Gradient Descent with Lazy Projection algorithm while having the feasible set $S$ to be $\mathbb{R}^d$. We recall that $h(x) = \frac{1}{2\eta}||x||_2^2$ which is $\frac{1}{\eta}$-strongly convex with respect to the Euclidean norm. We further note that $g(\theta) = \nabla h^*(\theta) = \eta\theta$ and the Euclidean norm being self-dual yields the following regret bound.
 \begin{align}
     \text{Regret}_T(x) &\leq \frac{1}{2\eta}||x||_2^2 - \frac{1}{2\eta}||x^{(1)}||_2^2 + \frac{\eta}{2}\sum_{t=1}^T ||z^{(t)}||_2^2\\
     &\leq \frac{1}{2\eta}||x||_2^2  + \frac{\eta}{2}\sum_{t=1}^T ||z^{(t)}||_2^2 &\because \frac{1}{2\eta}||x||_2^2 \geq 0
 \end{align}
-Suppose we let $L^2 = \frac{1}{T}\sum_{t=1}^T||z^{(t)}||_2^2$ and set $\eta = \frac{B}{L\sqrt{T}}$ (compare this with $\eta = \frac{B}{L\sqrt{2T}}$ from OMD with Lazy projections), then for all $||x||_2 \leq B$, we arrive at the bound of $\text{Regret}_T(x) \leq BL\sqrt{T}$, which itself is a factor of $\sqrt{2}$ improvement for the same algorithm but a different lens of analysis.
+Suppose we let $L^2 = \frac{1}{T}\sum_{t=1}^T||z^{(t)}||_2^2$ and set $\eta = \frac{B}{L\sqrt{T}}$ (compare this with $\eta = \frac{B}{L\sqrt{2T}}$ from OMD), then for all $||x||_2 \leq B$, we arrive at the bound of $\text{Regret}_T(x) \leq BL\sqrt{T}$, which itself is a factor of $\sqrt{2}$ improvement for the same algorithm but a different lens of analysis.
 \end{example}
 \subsection{Regret Bounds with Local Norms}
 Recall that from Equation~\ref{eqn:neg_regret}, the normalised EG algorithm yields the following regret bound
@@ -115,7 +166,7 @@ where $L_t$ is the Lipschitz bound for each $f_t$ with respect to $||\cdot||_1$,
     \item For any vector $z \in \mathbb{R}^d$, for $i \in [d]$, $z_i$ denotes the scalar in the $i$-th row of $z$. 
     \item Given vectors $z^{(1)}$, $z^{(2)}$, \dots, $z^{(t)}$, we define $z^{(1:t)} = \sum_{i=1}^t z^{(i)}$.
 \end{itemize}
-Given a series of iterates $x^{(1)}, x^{(2)}, \dots, x^{(t)} \in \Delta_d$, we can define the local norm $||z||_t$ for $z \in \mathbb{R}^d$ with respect to $x^{(1)}, x^{(2)}, \dots, x^{(t)}$ such that $||z||_t = \sqrt{\sum_{i=1}^d x^{(i)}_t (z^{(t)}_i)^2}$. One can verify that $||z||_t$ is indeed a norm. We now state the key theorem in this section.
+Given a series of iterates $x^{(1)}, x^{(2)}, \dots, x^{(t)} \in \Delta_d$, we can define the local norm $||z||_t$ for $z \in \mathbb{R}^d$ with respect to $x^{(1)}, x^{(2)}, \dots, x^{(t)}$ such that $||z||_t = \sqrt{\sum_{i=1}^d x^{(t)}_i (z^{(t)}_i)^2}$. One can verify that $||z||_t$ is indeed a norm. We now state the key theorem in this section.
 \begin{theorem}[Local Norm Regret Bound]\label{thm:EG_local_norm_regret_bound}
     Assume that the normalized EG algorithm is run on a sequence of linear loss functions $f^{(t)}(x) = \langle x, z^{(t)} \rangle$ such that for all $t \in [T]$, $i \in [d]$, we have $\eta z^{(t)}_i \geq -1$. Then,
     $$
@@ -125,13 +176,13 @@ Given a series of iterates $x^{(1)}, x^{(2)}, \dots, x^{(t)} \in \Delta_d$, we c
 \end{theorem}
 \noindent Before delving into the proof of the theorem, note that the bound given by the result above can indeed be computed directly based on intermediate iterates that the normalised EG algorithm yields.  We will now give a proof of the result using elementary inequalities.\\
 \begin{proof}
-    We first observe that in the normalised EG algorithm, $h(x) = \frac{1}{\eta}\sum_{i=1}^d x_i \log x_i + I_{\Delta_d}(x)$. By referring to Table~\ref{tab:fenchel-pairs}, we have $h^*(\theta) = \log\big(\sum_i e^{\theta_i}\big).$ One can verify that $\nabla h^*$ (w.r.t to $\theta$) is equal to the same $g$ found in Section~\ref{subsubsec:normalised_eg}. This thus allows us to apply Lemma~\ref{lemma:duality_preliminary}, which yields 
+    We first observe that in the normalised EG algorithm, $h(x) = \frac{1}{\eta}\sum_{i=1}^d x_i \log x_i + I_{\Delta_d}(x)$. By referring to Table~\ref{tab:fenchel-pairs}, we have $h^*(\theta) = \log\left(\sum_i e^{\theta_i}\right).$ One can verify that $\nabla h^*$ (w.r.t to $\theta$) is equal to the same $g$ (the softmax function) found in Section~\ref{subsubsec:normalised_eg}. This thus allows us to apply Theorem~\ref{lemma:duality_preliminary}, which yields 
     $$
     \sum_{t=1}^T\langle x^{(t)} - x, z^{(t)} \rangle \leq h(x) - h(x^{(1)}) + \sum_{t=1}^T D_{h^*}(-z^{(1:t)} || -z^{(1:t-1)}).
     $$
     Similar to the proof in Section~\ref{subsubsec:normalised_eg}, it is clear that for any vector $u$, 
     $$ -\frac{\log(d)}{\eta} \leq h(u) \leq 0, $$
-    with equality holding at $u$ being a constant vector with value $1/d$ and $u$ being zero respectively. It thus suffices to show that 
+    with equality holding at $u$ being a constant vector with value $1/d$ and $u$ being zero for all rows except for one respectively. It thus suffices to show that 
     $$ D_{h^*}(-z^{(1:t)} || -z^{(1:t-1)}) \leq \eta ||z||_t^2. $$
     By applying the definition of $D_{h^*}$, we have
     \begin{align*}
@@ -159,5 +210,5 @@ Given a series of iterates $x^{(1)}, x^{(2)}, \dots, x^{(t)} \in \Delta_d$, we c
     Finally, we apply the fact that $x^{(t)} \in \Delta_d$ and the inequality $\log(1 - a) \leq -a$ (which holds for all $a < 1$), we have
     \begin{align*}
         D_{h^*}(-z^{(1:t)} || -z^{(1:t-1)}) \leq \frac{1}{\eta} \sum_{i=1}^d x^{(t)}_i(- \eta z^{(t)}_i + \eta^2 (z^{(t)}_i)^2) + \langle x^{(t)}, z^{(t)} \rangle = \eta \sum_{i=1}^d x^{(t)}_i (z^{(t)}_i)^2 = \eta ||z||_t^2.
-    \end{align*}.
+    \end{align*}
 \end{proof}

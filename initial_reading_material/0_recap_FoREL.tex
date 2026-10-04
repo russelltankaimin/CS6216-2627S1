@@ -6,7 +6,12 @@ This section will consist of a brief recap of the Follow-the-Regularised-Leader 
         x^{(t)} = \arg \min_{x \in S} \left\{\sum_{i = 1}^{t-1} f^{(i)}(x)\right\}\hspace{1cm}\forall t
     \end{equation}
 \end{define}
-In FoRel, we add a regularisation term $h$. The goal of the regularisation term is to stabilise the solution. \joseph{Maybe consider adding Example 2.2 Failure of FTL to motivate the need of FoREL.}
+However, FTL has its drawbacks as we demonstrate in the following example.
+\begin{example}[Failure of FTL]
+    Suppose we have $S = [-1, 1]$ and consider the sequence of linear functions $f^{(t)}(x) = z^{(t)}x$ where $z^{(t)} = 1$ if $t$ is even, $-0.5$ if $t = 1$ and $-1$ if $t > 1$ and $t$ is odd. FTL will set $x^{(t)} = 1$ for odd $t$ and $-1$ for even $t$. The cumulative loss of the FTL algorithm is therefore $T$ while the cumulative loss of the fixed solution $x = 0 \in S$ is 0. That means the regret of FTL is $T$ which is not sublinear!
+\end{example}
+The reason while FTL fails in the above example is that $x^{(t)}$ is not stable. It oscillates from 1 to -1 at each iteration. In contrast, we also know from the previous week that FTL works well in online quadratic optimisation as $x^{(t+1)}$ is close to $x^{(t)}$. Hence one way to stabilise FTL is to add regularisation (a function $h$), which yields a variant of FTL called Follow-The-Regularised-Leader (FoReL).
+
 \begin{define}[Follow-The-Regularised-Leader]\label{defn:forel} The Follow-The-Regularised-Leader (FoREL) learning rule extends FTL by adding a regularisation term $h: S \to \mathbb R$.
     \begin{equation}
         x^{(t)} = \arg \min_{x \in S} \left\{\sum_{i = 1}^{t-1} f^{(i)}(x) + h(x)\right\}\hspace{1cm}\forall t
@@ -28,19 +33,19 @@ We also recap some of the important definitions that will be important in helpin
     \end{equation*}
     where $\partial f(x')$ is the set of sub-gradients of $f$ at $x'$. Furthermore, if $x^*$ minimises $f$ over $S$, then for all $x' \in S$
     \begin{equation*}
-        f(x') - f(x^*) \ge \frac{\sigma}{2}||x' - x^*||^2
+        f(x') - f(x^*) \ge \frac{\sigma}{2}||x' - x^*||^2.
     \end{equation*}
 \end{define}
 
-We also define something that might be unfamiliar to the reader which is called the \textit{dual norm}, denoted by $||\cdot||_*$
+\noindent We also provide the definition of the \textit{dual norm}, denoted by $||\cdot||_*$.
 \begin{define}
     Let $||\cdot||$ be a norm. The dual norm of $||\cdot||$ is a function $||\cdot||_*$ defined as
     \begin{equation}
         ||y||_* := \sup\{\langle x, y \rangle: ||x|| \leq 1\}
     \end{equation}
 \end{define}
-The dual norm of the $\ell_2$-norm is again the $\ell_2$-norm (the $\ell_2$-norm is therefore \textit{self-dual}). In general, the dual for the $\ell_p$-norm is the $\ell_q$-norm, where $\frac{1}{p} + \frac{1}{q} = 1$. We also give a lemma for a convex function which is $L$-Lipschitz and how it relates to the dual norm.
-\begin{lemma} Let $f: S \to \mathbb R$ be a convex function. $f$ is $L$-Lipschitz over $S$ with respect to a norm $||\cdot||$ if and only if for all $x'\in S$ and $z \in \partial f(x')$, we have $||z||_* \leq L$.
+\noindent One can show that the dual norm of the $\ell_2$-norm is again the $\ell_2$-norm (the $\ell_2$-norm is therefore \textit{self-dual}). In general, the dual for the $\ell_p$-norm is the $\ell_q$-norm, where $\frac{1}{p} + \frac{1}{q} = 1$. We also give a lemma for a convex function which is $L$-Lipschitz and how it relates to the dual norm. The proof for the following lemma can be found in [\cite{shalev2025online}, Lemma 2.6].
+\begin{lemma} Let $f: S \to \mathbb R$ be a convex function. $f$ is $L$-Lipschitz over $S$ with respect to a norm $||\cdot||$ if and only if for all $x'\in S$ and $z \in \partial f(x')$, we have $||z||_* \leq L$. 
 \end{lemma}
 \subsection{Regret Bound Results for FoReL}
 We give a proof sketch on deriving the regret bound for FoReL. From Week 7's notes, the regret for FoReL can be written as the following when evaluated against a fixed value $x$ as such:
@@ -49,18 +54,26 @@ We give a proof sketch on deriving the regret bound for FoReL. From Week 7's not
 \end{equation}
 To prove the bound for the above expression, recall also that we have the following lemma:
 \begin{lemma}\label{lemma:iterates_forel}
-    Let $x_1, x_2, \ldots$ be the iterates due to FoReL using the $\sigma$-strongly convex regulariser $h$. Then for all $x \in S$, we have that \begin{equation}\label{eqn:lemma_forel}
-        \sum_{t=1}^T (f^{(t)}(x^{(t)}) - f^{(t)}(x)) \leq h(x) - h(x^{(1)}) + \sum_{t=1}^T (f^{(t)}(x^{(t)}) - f^{(t)}(x^{(t+1)})
+    Let $x^{(1)}, x^{(2)}, \ldots$ be the iterates due to FoReL using the $\sigma$-strongly convex regulariser $h$. Then for all $x \in S$, we have that \begin{equation}\label{eqn:lemma_forel}
+        \sum_{t=1}^T (f^{(t)}(x^{(t)}) - f^{(t)}(x)) \leq h(x) - h(x^{(1)}) + \sum_{t=1}^T (f^{(t)}(x^{(t)}) - f^{(t)}(x^{(t+1)}))
     \end{equation}
 \end{lemma}
-Furthermore, it is also shown that if for all $t$, if $f^{(t)}$ is $L_t$-Lipschitz with respect to $||\cdot||$, then we further have that 
+\noindent Furthermore, it is also shown that if for all $t$, if $f^{(t)}$ is $L_t$-Lipschitz with respect to $||\cdot||$, then we further have that 
 \begin{equation}\label{eqn:lemma_forel_lipschitz}
     f^{(t)}(x^{(t)}) - f^{(t)}(x^{(t+1)}) \leq L_t ||x^{(t)} - x^{(t+1)}|| \leq \frac{L_t^2}{\sigma}
 \end{equation} 
-Again, interested readers may refer to Week 7's notes or \cite{shalev2025online} for the full derivation. Combining Equations~\ref{eqn:lemma_forel} and \ref{eqn:lemma_forel_lipschitz} we have that the regret bound for FoReL using the regulariser $h$ is as follows:
+
+\noindent Again, interested readers may refer to Week 7's notes or [\cite{shalev2025online}, Lemma 2.3] for the full derivation. Combining Equations~\ref{eqn:lemma_forel} and \ref{eqn:lemma_forel_lipschitz} we have that the regret bound for FoReL using the regulariser $h$ is as follows:
 \begin{equation}\label{eqn:forel_regre_with_min}
     \text{Regret}_T(x) \leq h(x) - h(x^{(1)}) + \frac{TL^2}{\sigma} \leq h(x) - \min_{v \in S} h(v) + \frac{TL^2}{\sigma}
-\end{equation} where $L$ is such that $\frac{1}{T}\sum_{t=1}^T L_t^2 \leq L^2$.
+\end{equation} where $L$ is such that $\frac{1}{T}\sum_{t=1}^T L_t^2 \leq L^2$. We further state a result that will be used to prove a key result in this discussion.
+\begin{lemma}\label{lemma:forel_generic_bound}
+    Suppose FoReL is run on a sequence of linear functions, $f^{(t)}(x) = \langle x, z_t\rangle$, for all $t$, with $S = \mathbb{R}^d$, and with the regularizer $h(x) = \frac{1}{2\eta}||x||_2^2$, which yields the prediction $x^{(t+1)} = x^{(t)} - \eta z^{(t)}$. Then, for all $x$, we have
+    \begin{equation}
+        \sum_{t=1}^T \langle x^{(t)} - x, z^{(t)} \rangle \leq \frac{1}{2\eta} ||x||_2^2 + \eta \sum_{t=1}^T ||z^{(t)}||_2^2.
+    \end{equation}
+\end{lemma}
+\noindent The proof of this result can be found in [\cite{shalev2025online}, Theorem 2.4].
 
 \subsection{The Problem with FoReL}
 The main issue (or a disadvantage) is that for FoReL, we need solve an optimisation problem \textit{at every iteration}, which is computationally inefficient and might be extremely complex. This leads us to a very natural question: \textit{Can we achieve a similar regret bound with a simpler update rule?} It turns out that we indeed can achieve a much simpler update rule without worsening the regret bound by using the Online Mirror Descent (OMD) family of algorithms.

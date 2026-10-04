@@ -1,14 +1,99 @@
 \section{Tighter Regret Bounds with Duality and Local Norms}
-\begin{frame}{}
-    We now shift away from using the FoReL framework to study the regret bounds of various OMD algorithms and instead adopt a new lens to perhaps get tighter bounds and in a much simpler way. In this section, we introduce two other ways to analyse regret bounds.
+
+\begin{frame}{Review Online Mirror Descent Algorithm}
+    \footnotesize
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{slides/figures/mirror_descent.png}
+    \end{figure}\pause
+    \begin{align*}
+        g(\theta^{(t)}) = \text{argmax}_{x \in S} \langle x, \theta^{(t)} \rangle - h(x)&, \ x^{(t+1)} = g(\theta^{(t+1)}) \\
+        \theta^{(t+1)} = \theta^{(t)} - z^{(t)}&, \ z^{(t)} \in \partial f^{(t)}(x^{(t)})
+    \end{align*}
+    \pause
+    Can we probe deeper into the duality structure? How can we further exploit the convex nature of $h$ using duality?
+\end{frame}
+
+\begin{frame}{Overview}
+    In this section, we introduce:
+    \begin{itemize}
+        \item Geometric characterisation of convex functions
+        \item Dual of convex functions (Fenchel Conjugate)
+    \end{itemize}\pause
+    We then explore two other ways to analyse regret bounds:
     \begin{itemize}
         \item Duality
         \item Local Norms
     \end{itemize}
 \end{frame}
 
+\begin{frame}{Geometric Characterisation of Convex Functions}
+We are generally familiar with the following inequality characterisation of convex functions:
+\begin{block}{Jensen's Inequality Characterisation of Convex Functions}
+    A function $f: \mathbb{R}^d \to \mathbb{R} \cup \{\infty\} $ is convex if and only if for all $x, y \in \text{dom}(f) = \{x \in \mathbb{R}^d \ | \ f(x) < \infty\}$ and $\lambda \in (0, 1)$, the following holds
+    $$
+    f(\lambda x + (1 - \lambda)y) \leq \lambda f(x) + (1 - \lambda) f(y).
+    $$
+\end{block}\pause
+We consider a different (equivalent) characterisation...
+\end{frame}
+
+\begin{frame}{Geometric Characterisation of Convex Functions}
+\begin{block}{Epigraph Characterisation of Convex Functions}
+    A function $f: \mathbb{R}^d \to \mathbb{R} \cup \{\infty\} $ is convex if and only if $\text{epi}(f)$ is a convex set, where the epigraph of $f$ is 
+    $$\text{epi}(f) = \{ (x, t) \in \mathbb{R}^n \times \mathbb{R}: t \geq f(x) \}.$$
+\end{block}\pause
+\centering
+\includegraphics[height=0.5\textheight]{initial_reading_material/figures/epigraph.png}
+\end{frame}
+
+\begin{frame}{Geometric Characterisation of Convex Functions}
+\begin{block}{Outer Representation of Convex Sets}
+    Assume $S$ is a non-empty closed convex set in $\mathbb{R^d}$. Let $T = \{(a,b) \in \mathbb{R}^{d+1} \ : \ \langle a, x \rangle \leq b \ \forall \ x \in S \}$. Then, $S$ can be represented as the intersection of all half-spaces containing $S$:
+    $$
+    S = \{ x \ : \ \langle a, x \rangle \leq b \ \forall \ (a, b) \in T \} = \bigcap_{(a, b) \in T} H_{a,b}
+    $$
+    where $H_{a,b} = \{ x \in \mathbb{R}^d \ | \ \langle a, x \rangle \leq b \}$.
+\end{block}\pause
+\begin{figure}
+\centering
+\begin{subfigure}[b]{0.32\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{initial_reading_material/figures/approx_3.png}
+  \caption{3 tangent lines}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.32\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{initial_reading_material/figures/approx_5.png}
+  \caption{5 tangent lines}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.32\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{initial_reading_material/figures/approx_10.png}
+  \caption{10 tangent lines}
+\end{subfigure}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Duality of Points \& Hyperplanes}
+We observe that the graph of a convex function $f$ never lies below any of its tangent lines (supporting hyperplanes).\pause \\
+For each tangent line, we can characterise it by $(\theta, -b)$, where $\theta$ is the slope and $-b$ is the intercept.\pause
+\begin{block}{Example in $\mathbb{R}^2$}
+    For the graph of $f$ to never be below its tangent lines, we have
+    $$
+    f(x) \geq \theta x - b \ \Leftrightarrow b \geq \theta x - f(x).
+    $$
+    Equality holds at the point of tangency, i.e.
+    $$
+    b = \sup_{x \in \text{dom}(f)} \theta x - f(x).
+    $$
+\end{block}
+\end{frame}
+
 \begin{frame}{A Primer on Fenchel Conjugacy}
-We first give the definition of the Fenchel conjugate of a convex function $f$:
+In general, the definition of the Fenchel conjugate of a convex function $f$:
 \begin{block}{Fenchel Conjugate of a convex function $f$}
     The Fenchel conjugate of the convex function $f$, denoted as $f^*$ is defined to be\begin{equation}\label{eqn:frenchel_conjugate}
         f^*(\theta) = \sup_{x \in \text{dom}(f)} \langle \theta, x \rangle -f(x)
@@ -28,13 +113,13 @@ The Fenchel conjugate $f^*$ is the function which takes in $\theta$ and outputs 
 \renewcommand{\arraystretch}{1.3}
 \begin{tabular}{ccl}
 \toprule
-$f(x)$ & $f^\star(\theta)$ & Comments \\
+$f(x)$ & $f^*(\theta)$ & Comments \\
 \midrule
 $\frac{1}{2}\|x\|_2^2$ & $\frac{1}{2}\|\theta\|_2^2$ & \\
 $\frac{1}{2}\|x\|_q^2$ & $\frac{1}{2}\|\theta\|_p^2$ & where $\frac{1}{p} + \frac{1}{q} = 1$ \\
-$\sum_i x[i]\log(x[i]) + I_{\Delta_d}(x)$ & $\log\big(\sum_i e^{\theta[i]}\big)$ & (normalized Entropy) \\
-$\frac{1}{\eta} g(x)$ & $\frac{1}{\eta} g^\star(\eta\theta)$ & where $\eta > 0$ \\
-$g(x) + \langle x, x' \rangle$ & $g^\star(\theta - x')$ & \\
+$\sum_i x_i\log(x_i) + I_{\Delta_d}(x)$ & $\log\big(\sum_i e^{\theta_i}\big)$ & (normalized Entropy) \\
+$\frac{1}{\eta} g(x)$ & $\frac{1}{\eta} g^*(\eta\theta)$ & where $\eta > 0$ \\
+$g(x) + \langle x, x' \rangle$ & $g^*(\theta - x')$ & \\
 \bottomrule
 \end{tabular}
 \caption{Some useful Fenchel conjugate pairs.}
@@ -42,14 +127,16 @@ $g(x) + \langle x, x' \rangle$ & $g^\star(\theta - x')$ & \\
 \end{table}
 \end{frame}
 
-\begin{frame}{Strong-Smoothness}
+\begin{frame}{Strong-Convexity-Recall}
     Recall the definition of $\sigma$-strong convexity. \pause
     \begin{block}{$\sigma$-strong convexity}
         A function $f$ that is $\sigma$-strongly convex over a set $S$ with respect to norm $||\cdot ||$ if for any $x' \in S$, we have that \begin{equation*}
         \forall z \in \partial f(x'),\;\forall x \in S, \; f(x) \geq f(x') + \langle z, x - x' \rangle + \frac{\sigma}{2} || x - x' ||^2
     \end{equation*}
     \end{block}
-    \pause
+\end{frame}
+
+\begin{frame}{Strong-Smoothness}
     A related property of strong-convexity is what we call \textit{strong-smoothness} and it is related to the Bregman divergence
     \begin{block}{$\sigma$-Strong-smoothness}
         A function $h$ is $\sigma$-strong smooth with respect to a norm $||\cdot||$ if it is differentiable and for all $x, x'$, we have that
@@ -57,10 +144,238 @@ $g(x) + \langle x, x' \rangle$ & $g^\star(\theta - x')$ & \\
             D_h(x||x') \leq \frac{\sigma}{2}||x - x'||^2
         \end{equation}
     \end{block}
-\end{frame}
-
-\begin{frame}{Strong-convexity-Strong-smoothness duality}
-    \begin{block}{Strong-convexity-smoothness Duality Lemma}
-        Assume that $h$ is a closed and convex function. $h$ is $\sigma$-strongly convex with respect to the norm $||\cdot||$ if and only if the Fenchel conjugate $h^*$ is $\frac{1}{\sigma}$-strongly smooth with respect to the dual norm $||\cdot||_*$.
+    \begin{block}{Bregman Divergence}
+        The Bregman divergence with respect to a strictly convex function $h$ (denoted by $D_h$), of two points, $x$ and $x'$ is defined as follows:
+        \begin{equation}
+            D_h(x || x') := h(x) - h(x') - \langle\nabla h(x'),  x - x' \rangle
+        \end{equation}
     \end{block}
 \end{frame}
+
+\begin{frame}{Strong-convexity-Strong-smoothness Duality}
+    \begin{block}{Strong-convexity-smoothness Duality Lemma}
+        Assume that $h$ is a closed and convex function. $h$ is $\sigma$-strongly convex with respect to the norm $||\cdot||$ if and only if the Fenchel conjugate $h^*$ is $\frac{1}{\sigma}$-strongly smooth with respect to the dual norm $||\cdot||_*$. The dual norm is given by
+        $$
+        ||x||_* = \max\{ \langle v, x \rangle \  : \ ||v|| \leq 1 \}.
+        $$
+    \end{block}
+\end{frame}
+
+\begin{frame}{Regret Analysis using Duality}
+    \begin{block}{Regret Bound of OMD using Duality}
+        Suppose that OMD is run with $g = \nabla h^*$, $z^{(t)} \in \partial f^{(t)}(x^{(t)})$, then its regret is upper bounded by
+        $$
+        \sum_{t=1}^T\langle x^{(t)} - x, z^{(t)} \rangle \leq h(x) - h(x^{(1)}) + \sum_{t=1}^T D_{h^*}\left(-\sum_{i=1}^t z^{(i)} \left\vert \vphantom{\frac{a}{b}} \right\vert  -\sum_{i=1}^{t-1}z^{(i)}\right)
+        $$
+    \end{block}\pause
+    \begin{block}{Regret Bound for FoReL (Linear Cost)}
+        Suppose we run FoReL on $f^{(t)}(x) = \langle x, z^{(t)}\rangle$ using the $\sigma$-strongly convex regulariser $h$. Then for all $x \in S$, we have that
+        $$
+        \sum_{t=1}^T \langle x^{(t)} - x, z^{(t)} \rangle \leq h(x) - h(x^{(1)}) + \sum_{t=1}^T \langle x^{(t)} - x^{(t+1)}, z^{(t)} \rangle 
+        $$
+    \end{block}
+\end{frame}
+
+\begin{frame}{Regret Analysis using Duality}
+    \small
+    \begin{block}{Regret Bound of OMD using Duality with strong convexity}
+        Suppose that OMD is run with $g = \nabla h^*$, $z^{(t)} \in \partial f^{(t)}(x^{(t)})$, $h$ is $\frac{1}{\eta}$-strongly convex, then its regret is upper bounded by
+        $$
+        \sum_{t=1}^T\langle x^{(t)} - x, z^{(t)} \rangle \leq h(x) - h(x^{(1)}) + \sum_{t=1}^T D_{h^*}\left(-\sum_{i=1}^t z^{(i)} \left\vert \vphantom{\frac{a}{b}} \right\vert  -\sum_{i=1}^{t-1}z^{(i)}\right)
+        $$
+    \end{block}\pause
+    Proof outline:
+    \begin{itemize}
+        \item Use the definition of $D_{h^*}$ and re-write $h^{*}(-z^{(1:T)})$ as a sum involving $D_{h^*}(-z^{(1:t)}||-z^{(1:t-1)})$
+        \item Use the Fenchel-Young inequality (from the Fenchel Conjugate definition) to relate $h^{*}(-z^{(1:T)})$ with $\left\langle x, -z^{(1:T)}\right\rangle - h(x)$
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Regret Analysis using Duality}
+    \small
+    \begin{block}{Regret Bound of OMD using Duality with strong convexity}
+        Suppose that OMD is run with $g = \nabla h^*$, $z^{(t)} \in \partial f^{(t)}(x^{(t)})$, $h$ is $\frac{1}{\eta}$-strongly convex, then its regret is upper bounded by
+        $$
+        \sum_{t=1}^T\langle x^{(t)} - x, z^{(t)} \rangle \leq h(x) - h(x^{(1)}) + \sum_{t=1}^T D_{h^*}\left(-\sum_{i=1}^t z^{(i)} \left\vert \vphantom{\frac{a}{b}} \right\vert  -\sum_{i=1}^{t-1}z^{(i)}\right)
+        $$
+    \end{block}\pause
+    \begin{block}{Strong-convexity-smoothness Duality Lemma}
+        Assume that $h$ is a closed and convex function. $h$ is $\sigma$-strongly convex with respect to the norm $||\cdot||$ if and only if the Fenchel conjugate $h^*$ is $\frac{1}{\sigma}$-strongly smooth with respect to the dual norm $||\cdot||_*$.
+    \end{block}\pause
+    \begin{block}{$\sigma$-Strong-smoothness}
+        A function $h^*$ is $\sigma$-strong smooth with respect to a norm $||\cdot||_*$ if it is differentiable and for all $x, x'$, we have that
+        $
+        D_h^*(x||x') \leq \frac{\sigma}{2}||x - x'||_*^2
+        $
+    \end{block}
+\end{frame}
+
+\begin{frame}{Regret Analysis using Duality}
+\begin{block}{Regret Bound of OMD using Duality with strong convexity}
+        Suppose that OMD is run with $g = \nabla h^*$, $z^{(t)} \in \partial f^{(t)}(x^{(t)})$, $h$ is $\frac{1}{\eta}$-strongly convex, then its regret is upper bounded by
+        $$
+        \sum_{t=1}^T\langle x^{(t)} - x, z^{(t)} \rangle \leq h(x) - h(x^{(1)}) + \frac{\eta}{2}\sum_{t=1}^T ||z^{(t)}||^2_*.
+        $$
+    \end{block}
+\end{frame}
+
+\begin{frame}{Online Gradient Descent}
+    \begin{itemize}
+    \item $h(x) = \frac{1}{2\eta}||x||_2^2$ (Euclidean Regulariser)
+    \item Norm: $||\cdot||_2$
+    \item $S = \mathbb{R}^d$
+\end{itemize}
+Again, using the definition of $g$, we derive some update rule:
+\begin{align*}
+    g(\theta) &= \arg\max_{x \in S} \left\{\langle x, \theta\rangle - \frac{1}{2\eta}||x||_2^2\right\} = \frac{1}{\eta}\theta
+\end{align*}
+\end{frame}
+
+\begin{frame}{Regret Bound for OGD}
+    \begin{block}{OGD with Regret Bound}
+    Suppose that $f^{(1)}, \ldots, f^{(T)}$ are a sequence of convex functions in which $f^{(t)}$ is $L_t$-Lipschitz with respect to $||\cdot||_2$. Then
+    \begin{equation*}
+        \text{Regret}_T(x) \leq \frac{1}{2\eta}||x||_2^2 + \eta TL^2
+    \end{equation*}
+    where $L$ is such that $\frac{1}{T}\sum_{t=1}^TL_t^2 \leq L^2$
+\end{block}
+In particular, if there exists $B \geq \max_{x \in S}||x||_2$, and $\eta = \frac{B}{L\sqrt{2T}}$, we have a regret bound for the Online Gradient Descent algorithm with 
+$$\text{Regret}_T(S) \leq BL \sqrt{2T}$$.
+\end{frame}
+
+\begin{frame}{Regret Analysis for OGD using Duality}
+\begin{block}{Regret Bound of OMD using Duality with strong convexity}
+        Suppose that OMD is run with $g = \nabla h^*$, $z^{(t)} \in \partial f^{(t)}(x^{(t)})$, $h$ is $\frac{1}{\eta}$-strongly convex, then its regret is upper bounded by
+        $$
+        \sum_{t=1}^T\langle x^{(t)} - x, z^{(t)} \rangle \leq h(x) - h(x^{(1)}) + \frac{\eta}{2}\sum_{t=1}^T ||z^{(t)}||^2_*.
+        $$
+    \end{block}
+\end{frame}
+
+\begin{frame}
+    \begin{block}{Reviewing Regret Bound of OGD}
+        We note that OGD is equivalent to OMD with $h(x) = \frac{1}{2\eta}||x||_2^2$,
+        $g(\theta) = \text{argmax}_{x \in \mathbb{R}^d} ( \langle x, \theta \rangle - h(x) )$,
+        and $h$ is $\frac{1}{\eta}$-strongly convex.
+    \end{block}
+    \begin{block}{$g = \nabla h^*$}
+        Observe that $h(x) = \frac{1}{2\eta}||x||_2^2$ implies $h = h^*$ and $g(\theta) = \eta \theta$.
+    \end{block}
+    \begin{block}{$||x||_2 = ||x||_{2,*}$}
+        We observe that the dual of the $\ell^2$-norm is equal to itself.
+    \end{block}
+\end{frame}
+
+\begin{frame}{Regret Analysis using Duality}
+\begin{block}{Regret Bound of OMD using Duality with strong convexity}
+        Suppose that OMD is run with $g = \nabla h^*$, $z^{(t)} \in \partial f^{(t)}(x^{(t)})$, $h$ is $\frac{1}{\eta}$-strongly convex, then its regret is upper bounded by
+        $$
+        \sum_{t=1}^T\langle x^{(t)} - x, z^{(t)} \rangle \leq h(x) - h(x^{(1)}) + \frac{\eta}{2}\sum_{t=1}^T ||z^{(t)}||^2_2.
+        $$
+        By similarly setting $L^2 = \frac{1}{T}\sum_{t=1}^T ||z^{(t)}||_2^2$ and $\eta = \frac{B}{L\sqrt{T}}$ where $||x||_2 \leq B$, then $\text{Regret}_T(S) \leq BL\sqrt{T}$.
+    \end{block}
+\end{frame}
+
+\begin{frame}{Regret Bound for OGD}
+    \begin{block}{OGD with Regret Bound}
+    Suppose that $f^{(1)}, \ldots, f^{(T)}$ are a sequence of convex functions in which $f^{(t)}$ is $L_t$-Lipschitz with respect to $||\cdot||_2$. Then
+    \begin{equation*}
+        \text{Regret}_T(x) \leq \frac{1}{2\eta}||x||_2^2 + \eta TL^2
+    \end{equation*}
+    where $L$ is such that $\frac{1}{T}\sum_{t=1}^TL_t^2 \leq L^2$
+\end{block}
+In particular, if there exists $B \geq \max_{x \in S}||x||_2$, and $\eta = \frac{B}{L\sqrt{2T}}$, we have a regret bound for the Online Gradient Descent algorithm with 
+$$\text{Regret}_T(S) \leq BL \sqrt{2T}$$.
+\end{frame}
+
+\begin{frame}{Local Norm (Motivation)}
+    The normalised EG algorithm has the regret bound
+    $$
+    \boxed{\text{Regret}_T(\Delta_d) \leq \frac{\log d}{\eta} + \eta TL^2}
+    $$\pause
+    The value $L$ is defined such that $L^2 \geq \frac{1}{T}\sum_{t=1}^T L_t^2$ and each $L_t$ is the Lipschitz bound for each $f^{(t)}$. \\ \pause
+    These $L^{(t)}$ values, hence $L$, are oftentimes not accessible. We aim to find a bound that an be computed using the intermediate values yielded from running the normalised EG algorithm.
+\end{frame}
+
+\begin{frame}{Local Norm}
+    \begin{block}{Local Norm Definition}
+    Given a series of iterates $x^{(1)}, x^{(2)}, \dots, x^{(t)} \in \Delta_d$, we can define the local norm $||z||_t$ for $z \in \mathbb{R}^d$ with respect to $x^{(1)}, x^{(2)}, \dots, x^{(t)}$ such that 
+    $$||z||_t = \sqrt{\sum_{i=1}^d x^{(t)}_i (z^{(t)}_i)^2}.$$
+    One can verify that $||z||_t$ is indeed a norm.
+\end{block}
+\end{frame}
+
+\begin{frame}{Local Norm Regret Bound}
+    \small
+    \begin{block}{Local Norm Regret Bound}
+    Assume that the normalized EG algorithm is run on a sequence of linear loss functions $f^{(t)}(x) = \langle x, z^{(t)} \rangle$ such that for all $t \in [T]$, $i \in [d]$, we have $\eta z^{(t)}_i \geq -1$. Then,
+    $$
+    \sum_{t=1}^T \langle x^{(t)} - x, z^{(t)} \rangle
+    \leq \frac{\log(d)}{\eta} + \eta \sum_{t=1}^T ||z^{(t)}||^2_t.
+    $$
+    \end{block}\pause
+    Proof strategy: We want to apply the following result
+    \begin{block}{Regret Bound of OMD using Duality with strong convexity}
+        Suppose that OMD is run with $g = \nabla h^*$, $z^{(t)} \in \partial f^{(t)}(x^{(t)})$, $h$ is $\frac{1}{\eta}$-strongly convex, then its regret is upper bounded by
+        $$
+        \sum_{t=1}^T\langle x^{(t)} - x, z^{(t)} \rangle \leq h(x) - h(x^{(1)}) + \sum_{t=1}^T D_{h^*}\left(-\sum_{i=1}^t z^{(i)} \left\vert \vphantom{\frac{a}{b}} \right\vert  -\sum_{i=1}^{t-1}z^{(i)}\right)
+        $$
+    \end{block}
+\end{frame}
+
+\begin{frame}{Local Norm Regret Bound}
+    \scriptsize
+    \begin{block}{Local Norm Regret Bound}
+    Assume that the normalized EG algorithm is run on a sequence of linear loss functions $f^{(t)}(x) = \langle x, z^{(t)} \rangle$ such that for all $t \in [T]$, $i \in [d]$, we have $\eta z^{(t)}_i \geq -1$. Then,
+    $$
+    \sum_{t=1}^T \langle x^{(t)} - x, z^{(t)} \rangle
+    \leq \frac{\log(d)}{\eta} + \eta \sum_{t=1}^T ||z^{(t)}||^2_t.
+    $$
+    \end{block}
+    Proof strategy: We want to apply the following result
+    \begin{block}{Regret Bound of OMD using Duality with strong convexity}
+        Suppose that OMD is run with $g = \nabla h^*$, $z^{(t)} \in \partial f^{(t)}(x^{(t)})$, $h$ is $\frac{1}{\eta}$-strongly convex, then its regret is upper bounded by
+        $$
+        \sum_{t=1}^T\langle x^{(t)} - x, z^{(t)} \rangle \leq h(x) - h(x^{(1)}) + \sum_{t=1}^T D_{h^*}\left(-\sum_{i=1}^t z^{(i)} \left\vert \vphantom{\frac{a}{b}} \right\vert  -\sum_{i=1}^{t-1}z^{(i)}\right)
+        $$
+    \end{block}\pause
+    Proceed to show that:
+    $$h(x) - h(x^{(1)}) \leq \frac{\log(d)}{\eta} \quad \text{and} \quad D_{h^*}\left(-\sum_{i=1}^t z^{(i)} \left\vert \vphantom{\frac{a}{b}} \right\vert  -\sum_{i=1}^{t-1}z^{(i)}\right) \leq \eta ||z^{(t)}||^2_t$$
+\end{frame}
+
+\begin{frame}{Local Norm Regret Bound}
+    \scriptsize
+    \begin{block}{Local Norm Regret Bound}
+    Assume that the normalized EG algorithm is run on a sequence of linear loss functions $f^{(t)}(x) = \langle x, z^{(t)} \rangle$ such that for all $t \in [T]$, $i \in [d]$, we have $\eta z^{(t)}_i \geq -1$. Then,
+    $$
+    \sum_{t=1}^T \langle x^{(t)} - x, z^{(t)} \rangle
+    \leq \frac{\log(d)}{\eta} + \eta \sum_{t=1}^T ||z^{(t)}||^2_t.
+    $$
+    \end{block}
+    Proof strategy: We want to apply the following result
+    \begin{block}{Regret Bound of OMD using Duality with strong convexity}
+        Suppose that OMD is run with $g = \nabla h^*$, $z^{(t)} \in \partial f^{(t)}(x^{(t)})$, $h$ is $\frac{1}{\eta}$-strongly convex, then its regret is upper bounded by
+        $$
+        \sum_{t=1}^T\langle x^{(t)} - x, z^{(t)} \rangle \leq h(x) - h(x^{(1)}) + \sum_{t=1}^T D_{h^*}\left(-\sum_{i=1}^t z^{(i)} \left\vert \vphantom{\frac{a}{b}} \right\vert  -\sum_{i=1}^{t-1}z^{(i)}\right)
+        $$
+    \end{block}
+    In the normalised EG algorithm, we can verify that $\nabla h^* = g$ as
+    $$
+    h(x) = \frac{1}{\eta}\sum_{i=1}^d x_i \log x_i + I_{\Delta_d}(x) \quad \text{and} \quad 
+    h^*(\theta) = \log\big(\sum_i e^{\theta_i}\big).
+    $$
+\end{frame}
+
+\begin{frame}{Local Norm Regret Bound}
+    \scriptsize
+    \begin{block}{Local Norm Regret Bound}
+    Assume that the normalized EG algorithm is run on a sequence of linear loss functions $f^{(t)}(x) = \langle x, z^{(t)} \rangle$ such that for all $t \in [T]$, $i \in [d]$, we have $\eta z^{(t)}_i \geq -1$. Then,
+    $$
+    \sum_{t=1}^T \langle x^{(t)} - x, z^{(t)} \rangle
+    \leq \frac{\log(d)}{\eta} + \eta \sum_{t=1}^T ||z^{(t)}||^2_t.
+    $$
+    \end{block}
+    Proof strategy: Remove the log-sum-exp term in $h^*(\theta) = \log\big(\sum_i e^{\theta_i}\big)$ using
+    $$ e^{-a} \leq 1 - a + a^2 \ (a \geq -1) \quad \text{and} \quad \log(1-a) \leq -a. $$
+\end{frame}
+
